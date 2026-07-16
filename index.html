@@ -286,7 +286,6 @@
 
 <main>
 
-  <!-- SUBMIT VIEW -->
   <section id="view-submit" class="view active">
     <div class="panel form-panel">
       <h2 class="form-title">Submit your project</h2>
@@ -352,7 +351,6 @@
     </div>
   </section>
 
-  <!-- DASHBOARD VIEW -->
   <section id="view-dashboard" class="view">
     <div class="dash-head">
       <div>
@@ -393,7 +391,6 @@
 
 <footer>Dooars Academy of Technology · Project Submission Portal · Submissions are visible to everyone using this page</footer>
 
-<!-- Success modal -->
 <div class="overlay" id="successOverlay">
   <div class="modal">
     <div class="check-wrap">
@@ -530,8 +527,6 @@
         submittedAt: new Date().toISOString()
       };
 
-      // Saved to SHARED storage: viewable from any browser/device on this
-      // page, immediately, before anyone downloads the PDF.
       let persisted = true;
       let persistError = '';
       try {
@@ -555,7 +550,7 @@
 
       if(!persisted){
         record.__sessionOnly = true;
-        allSubmissions.push(record); // session-only fallback so the dashboard can still show it this session
+        allSubmissions.push(record);
       }
     } catch(err){
       showToast('Something went wrong while submitting. Please try again.');
@@ -588,20 +583,27 @@
     refreshBtn.classList.add('spinning');
     listContainer.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
     const sessionOnly = allSubmissions.filter(r => r.__sessionOnly);
+    
     try {
       const listResult = await window.storage.list('submission:', true);
       const keys = (listResult && listResult.keys) ? listResult.keys : [];
-      const records = [];
-      for(const key of keys){
+      
+      // Load all data records asynchronously at the same time
+      const fetchPromises = keys.map(async (key) => {
         try {
           const res = await window.storage.get(key, true);
-          if(res && res.value) records.push(JSON.parse(res.value));
-        } catch(e){ /* skip unreadable entry */ }
-      }
-      allSubmissions = records.concat(sessionOnly);
+          return res && res.value ? JSON.parse(res.value) : null;
+        } catch(e) {
+          return null;
+        }
+      });
+      
+      const records = await Promise.all(fetchPromises);
+      allSubmissions = records.filter(r => r !== null).concat(sessionOnly);
     } catch(e){
       showToast('Could not load submissions right now.');
     }
+    
     refreshBtn.classList.remove('spinning');
     populateDeptFilter();
     renderStats();
@@ -614,7 +616,6 @@
     deptFilter.innerHTML = '<option value="">All departments</option>' + depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
 
     if(!deptFilterInitialized){
-      // Stream only BCA submissions by default on first load, if any exist.
       deptFilter.value = depts.includes(BCA_DEPT) ? BCA_DEPT : current;
       deptFilterInitialized = true;
     } else {
@@ -687,7 +688,7 @@
 
   async function deleteSubmission(id){
     if(!confirm('Delete this submission? This cannot be undone.')) return;
-    try { await window.storage.delete('submission:' + id, true); } catch(e){ /* may be session-only */ }
+    try { await window.storage.delete('submission:' + id, true); } catch(e){}
     allSubmissions = allSubmissions.filter(r => r.id !== id);
     renderStats();
     renderList();
