@@ -393,7 +393,7 @@
 
     <div class="storage-banner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a8 4 0 0016 0M4 7a8 4 0 0116 0v10a8 4 0 01-16 0V7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Showing data stored securely via IndexedDB and structural runtime mirrors. Use the Backup Export button below to download your submissions database to a local file anytime to secure them completely.</span>
+      <span id="storageBannerText">Showing data stored securely via IndexedDB and structural runtime mirrors. Use the Backup Export button below to download your submissions database to a local file anytime to secure them completely.</span>
     </div>
 
     <div class="stats">
@@ -450,6 +450,39 @@
   let allSubmissions = [];
   let deptFilterInitialized = false;
   let isAuthenticated = false;
+
+  // ---------- Google Drive backend (Apps Script Web App) ----------
+  // 1. Deploy the accompanying Code.gs as a Web App under froxyop@gmail.com
+  //    (Execute as: Me, Who has access: Anyone).
+  // 2. Paste the deployment URL below.
+  const DRIVE_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+
+  function driveConfigured(){
+    return DRIVE_SCRIPT_URL && DRIVE_SCRIPT_URL.indexOf('https://script.google.com') === 0;
+  }
+
+  function uploadToDrive(record){
+    if(!driveConfigured()) return Promise.resolve({ success:false, error:'not-configured' });
+    return fetch(DRIVE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight
+      body: JSON.stringify(record)
+    }).then(r => r.json()).catch(err => ({ success:false, error: String(err) }));
+  }
+
+  function fetchFromDrive(){
+    if(!driveConfigured()) return Promise.resolve([]);
+    return fetch(DRIVE_SCRIPT_URL + '?action=list')
+      .then(r => r.json())
+      .then(list => Array.isArray(list) ? list : [])
+      .catch(() => []);
+  }
+
+  function deleteFromDrive(id){
+    if(!driveConfigured()) return Promise.resolve(false);
+    return fetch(DRIVE_SCRIPT_URL + '?action=delete&id=' + encodeURIComponent(id))
+      .then(r => r.json()).then(res => !!(res && res.success)).catch(() => false);
+  }
 
   // ---------- Native Runtime Memory Cache Array Buffer Mirror ----------
   let backupCache = [];
@@ -637,9 +670,22 @@
   }
 
   // Helper routine to reliably open/download PDFs inside restrictive/sandboxed iframes via Blobs
-  function handlePdfAction(base64Data, filename, actionType) {
+  function handlePdfAction(record, actionType) {
+    // Prefer the Drive-hosted copy when we have one — smaller payload, works across devices.
+    if(record.driveFileUrl){
+      if(actionType === 'view'){
+        window.open(record.driveFileUrl, '_blank');
+      } else {
+        window.open(record.driveDownloadUrl || record.driveFileUrl, '_blank');
+      }
+      return;
+    }
+    if(!record.fileBase64){
+      showToast('This submission has no local file copy and Drive is not configured.');
+      return;
+    }
     try {
-      const byteCharacters = atob(base64Data);
+      const byteCharacters = atob(record.fileBase64);
       const byteNumbers = new Array(byteCharacters.length);
       for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
@@ -651,7 +697,7 @@
       if (actionType === 'view') {
         const newTab = window.open();
         if (newTab) {
-          newTab.document.title = filename;
+          newTab.document.title = record.fileName;
           const iframe = newTab.document.createElement('iframe');
           iframe.src = blobUrl;
           iframe.style.width = '100%';
@@ -661,19 +707,17 @@
           newTab.document.body.style.margin = '0';
           newTab.document.body.appendChild(iframe);
         } else {
-          // Fallback if popup blocker hits
           window.location.href = blobUrl;
         }
       } else if (actionType === 'download') {
         const dlAnchor = document.createElement('a');
         dlAnchor.href = blobUrl;
-        dlAnchor.download = filename;
+        dlAnchor.download = record.fileName;
         document.body.appendChild(dlAnchor);
         dlAnchor.click();
         dlAnchor.remove();
       }
       
-      // Clear allocation memory footprint shortly after execution completes
       setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
     } catch(err) {
       showToast("Unable to decode PDF stream structure data object.");
@@ -714,6 +758,16 @@
         submittedAt: new Date().toISOString()
       };
 
+      // Try Google Drive first — this is the shared, cross-device copy of record of truth.
+      const driveResult = await uploadToDrive(record);
+      if(driveResult && driveResult.success){
+        record.driveFileId = driveResult.fileId;
+        record.driveFileUrl = driveResult.fileUrl;
+        record.driveDownloadUrl = driveResult.downloadUrl || driveResult.fileUrl;
+        // Once safely in Drive, don't also carry the heavy base64 in local mirrors.
+        delete record.fileBase64;
+      }
+
       backupCache.push(record);
 
       try { localStorage.setItem('sub_item:' + id, JSON.stringify(record)); } catch(e){}
@@ -726,7 +780,9 @@
       } catch(err){}
 
       document.getElementById('modalSubId').textContent = 'Submission ID: ' + id;
-      document.getElementById('modalMsg').textContent = '"' + record.title + '" has been captured across all memory targets successfully.';
+      document.getElementById('modalMsg').textContent = driveResult && driveResult.success
+        ? '"' + record.title + '" has been saved to Google Drive successfully.'
+        : '"' + record.title + '" has been captured across all memory targets successfully.';
       document.getElementById('successOverlay').classList.add('show');
 
       form.reset();
@@ -764,6 +820,11 @@
   async function loadSubmissions(){
     refreshBtn.classList.add('spinning');
     listContainer.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+
+    const banner = document.getElementById('storageBannerText');
+    banner.textContent = driveConfigured()
+      ? 'Showing submissions synced from Google Drive (froxyop@gmail.com), with local mirrors as backup.'
+      : 'Google Drive isn\'t configured yet — paste your Apps Script URL into DRIVE_SCRIPT_URL. Falling back to local/browser storage only.';
     
     const unifiedMap = new Map();
 
@@ -798,6 +859,10 @@
         systemRecords.forEach(r => { if (r && r.id) unifiedMap.set(r.id, r); });
       }
     } catch(e){}
+
+    // Google Drive / Sheet is the authoritative shared source — let it win on conflicts.
+    const driveRecords = await fetchFromDrive();
+    driveRecords.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
 
     allSubmissions = Array.from(unifiedMap.values());
     backupCache = [...allSubmissions];
@@ -927,6 +992,7 @@
               <span class="id">${r.id}</span>
               <span>${dateStr}</span>
               <span>${formatBytes(r.fileSize || 0)}</span>
+              ${r.driveFileUrl ? '<span>☁️ Drive</span>' : ''}
             </span>
           </div>
           <div class="actions">
@@ -937,18 +1003,17 @@
         </div>`;
     }).join('');
 
-    // Attach functional event drivers to actions selectors
     listContainer.querySelectorAll('.view-pdf-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const entry = allSubmissions.find(r => r.id === btn.dataset.viewid);
-        if(entry) handlePdfAction(entry.fileBase64, entry.fileName, 'view');
+        if(entry) handlePdfAction(entry, 'view');
       });
     });
 
     listContainer.querySelectorAll('.dl-pdf-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const entry = allSubmissions.find(r => r.id === btn.dataset.dlid);
-        if(entry) handlePdfAction(entry.fileBase64, entry.fileName, 'download');
+        if(entry) handlePdfAction(entry, 'download');
       });
     });
 
@@ -965,6 +1030,7 @@
     try { localStorage.removeItem('submission:' + id); } catch(e){}
     await deleteFromIDB(id);
     try { if (window.storage && window.storage.delete) await window.storage.delete('submission:' + id, true); } catch(e){}
+    await deleteFromDrive(id);
     
     allSubmissions = allSubmissions.filter(r => r.id !== id);
     renderStats();
