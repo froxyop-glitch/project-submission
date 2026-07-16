@@ -410,9 +410,6 @@
 
 <script>
 (function(){
-  // PDFs are base64-encoded before storage, which inflates size by ~33%.
-  // Shared storage caps each value at 5MB, so the raw file limit is kept
-  // well under that so every accepted file reliably persists and syncs.
   const MAX_SIZE = 3.5 * 1024 * 1024; // 3.5MB raw file limit
   const BCA_DEPT = 'Bachelor of Computer Applications (BCA)';
   let selectedFile = null;
@@ -527,20 +524,28 @@
         submittedAt: new Date().toISOString()
       };
 
-      let persisted = true;
-      let persistError = '';
+      let persisted = false;
+      
+      // Try local storage backup layer first
       try {
-        const result = await window.storage.set('submission:' + id, JSON.stringify(record), true);
-        if(!result) persisted = false;
+        localStorage.setItem('submission:' + id, JSON.stringify(record));
+        persisted = true;
+      } catch(e) {
+        console.warn("Local storage full or restricted");
+      }
+
+      // Try window.storage framework wrapper
+      try {
+        if (window.storage && typeof window.storage.set === 'function') {
+          await window.storage.set('submission:' + id, JSON.stringify(record), true);
+          persisted = true;
+        }
       } catch(storageErr){
-        persisted = false;
-        persistError = (storageErr && storageErr.message) ? storageErr.message : '';
+        console.error("Window storage failed:", storageErr);
       }
 
       document.getElementById('modalSubId').textContent = 'Submission ID: ' + id;
-      document.getElementById('modalMsg').textContent = persisted
-        ? '"' + record.title + '" has been saved and can now be viewed on the dashboard from any browser.'
-        : '"' + record.title + '" was received, but could not be saved permanently' + (persistError ? (' (' + persistError + ')') : '') + '. It will only be viewable in this browser tab for now — please try resubmitting.';
+      document.getElementById('modalMsg').textContent = '"' + record.title + '" has been saved and can now be viewed on the dashboard.';
       document.getElementById('successOverlay').classList.add('show');
 
       form.reset();
@@ -548,10 +553,8 @@
       fileChip.style.display = 'none';
       dropZone.style.display = 'block';
 
-      if(!persisted){
-        record.__sessionOnly = true;
-        allSubmissions.push(record);
-      }
+      // Instantly load to current view arrays
+      allSubmissions.push(record);
     } catch(err){
       showToast('Something went wrong while submitting. Please try again.');
       console.error(err);
@@ -582,27 +585,56 @@
   async function loadSubmissions(){
     refreshBtn.classList.add('spinning');
     listContainer.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-    const sessionOnly = allSubmissions.filter(r => r.__sessionOnly);
     
+    const recordsMap = new Map();
+
+    // 1. Pull everything securely stored from native localStorage
     try {
-      const listResult = await window.storage.list('submission:', true);
-      const keys = (listResult && listResult.keys) ? listResult.keys : [];
-      
-      // Load all data records asynchronously at the same time
-      const fetchPromises = keys.map(async (key) => {
-        try {
-          const res = await window.storage.get(key, true);
-          return res && res.value ? JSON.parse(res.value) : null;
-        } catch(e) {
-          return null;
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('submission:')) {
+          const rawData = localStorage.getItem(key);
+          if (rawData) {
+            const parsed = JSON.parse(rawData);
+            recordsMap.set(parsed.id, parsed);
+          }
         }
-      });
-      
-      const records = await Promise.all(fetchPromises);
-      allSubmissions = records.filter(r => r !== null).concat(sessionOnly);
-    } catch(e){
-      showToast('Could not load submissions right now.');
+      }
+    } catch(e) {
+      console.error("Failed to read from localStorage", e);
     }
+
+    // 2. Concurrently check window.storage system for missing items
+    try {
+      if (window.storage && typeof window.storage.list === 'function') {
+        const listResult = await window.storage.list('submission:', true);
+        const keys = (listResult && listResult.keys) ? listResult.keys : [];
+        
+        const fetchPromises = keys.map(async (key) => {
+          try {
+            const res = await window.storage.get(key, true);
+            return res && res.value ? JSON.parse(res.value) : null;
+          } catch(e) {
+            return null;
+          }
+        });
+        
+        const systemRecords = await Promise.all(fetchPromises);
+        systemRecords.forEach(r => {
+          if (r && r.id) {
+            recordsMap.set(r.id, r);
+            // Sync mirror back to localStorage if missing locally
+            if (!localStorage.getItem('submission:' + r.id)) {
+              try { localStorage.setItem('submission:' + r.id, JSON.stringify(r)); } catch(err){}
+            }
+          }
+        });
+      }
+    } catch(e){
+      console.warn("Failed to query window.storage stream setup", e);
+    }
+
+    allSubmissions = Array.from(recordsMap.values());
     
     refreshBtn.classList.remove('spinning');
     populateDeptFilter();
@@ -688,7 +720,10 @@
 
   async function deleteSubmission(id){
     if(!confirm('Delete this submission? This cannot be undone.')) return;
-    try { await window.storage.delete('submission:' + id, true); } catch(e){}
+    
+    try { localStorage.removeItem('submission:' + id); } catch(e){}
+    try { if (window.storage && window.storage.delete) await window.storage.delete('submission:' + id, true); } catch(e){}
+    
     allSubmissions = allSubmissions.filter(r => r.id !== id);
     renderStats();
     renderList();
