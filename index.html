@@ -265,6 +265,7 @@
 </style>
 </head>
 <body>
+
 <header class="top">
   <div class="contour-bg">
     <svg viewBox="0 0 200 200" fill="none" stroke="#ffffff" stroke-width="1">
@@ -947,7 +948,11 @@
     listContainer.querySelectorAll('.dl-pdf-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const entry = allSubmissions.find(r => r.id === btn.dataset.dlid);
-        if(entry) handlePdfAction(entry.fileBase64, entry.fileName, 'download');
+        if(entry) {
+          // Custom Filename using Name and Roll Number, replacing illegal characters/spaces with underscores
+          const customFilename = `${entry.name}_${entry.roll}.pdf`.replace(/[^a-zA-Z0-9_\.-]/g, '_');
+          handlePdfAction(entry.fileBase64, customFilename, 'download');
+        }
       });
     });
 
