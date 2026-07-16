@@ -1,36 +1,684 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Project Submission</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
-        .container { max-width: 500px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        h2 { color: #333; }
-        label { display: block; margin-top: 10px; font-weight: bold; }
-        input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { margin-top: 15px; padding: 10px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
-        button:hover { background: #218838; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dooars Academy of Technology — Project Submission Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #eef3fa;
+    --surface: #ffffff;
+    --primary: #163a6e;
+    --primary-light: #2f5fa8;
+    --accent: #4a90d9;
+    --ink: #17233d;
+    --muted: #5b6b82;
+    --border: #dce6f2;
+    --success: #1e8e5a;
+    --success-bg: #e7f6ee;
+    --danger: #c0392b;
+    --danger-bg: #fbebe9;
+    --radius: 14px;
+    --shadow: 0 4px 18px rgba(22, 58, 110, 0.08);
+    --shadow-lg: 0 20px 60px rgba(22, 58, 110, 0.22);
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0;
+    font-family:'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection{ background: var(--accent); color:#fff; }
+  a{ color: inherit; }
+  button{ font-family: inherit; }
+  :focus-visible{ outline: 2px solid var(--primary-light); outline-offset: 2px; }
+
+  /* ---------- Topographic signature pattern ---------- */
+  .contour-bg{
+    position:absolute; inset:0; overflow:hidden; pointer-events:none;
+  }
+  .contour-bg svg{ position:absolute; top:-20%; right:-10%; width:640px; height:640px; opacity:0.14; }
+
+  /* ---------- Header ---------- */
+  header.top{
+    position: relative;
+    background: linear-gradient(135deg, var(--primary) 0%, #0f2a54 100%);
+    color: #fff;
+    overflow: hidden;
+  }
+  .top-inner{
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 28px 24px 0;
+    display:flex;
+    align-items:center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .crest{
+    width:52px; height:52px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #dcebff, #6fa3e0 55%, #2a5aa0 100%);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25), inset 0 0 0 2px rgba(255,255,255,0.35);
+    flex-shrink:0;
+  }
+  .crest svg{ width:30px; height:30px; }
+  .brand-text .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #b7cdf0;
+  }
+  .brand-text h1{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(20px, 3vw, 27px);
+    margin: 2px 0 0;
+    letter-spacing: 0.01em;
+  }
+  nav.tabs{
+    display:flex; gap:4px;
+    position: relative;
+    max-width: 1100px;
+    margin: 22px auto 0;
+    padding: 0 24px;
+  }
+  nav.tabs button{
+    background:none; border:none; color: #cddcf3;
+    padding: 12px 18px; font-size: 14.5px; font-weight: 600;
+    cursor:pointer; border-bottom: 3px solid transparent;
+    transition: color .18s ease, border-color .18s ease;
+  }
+  nav.tabs button:hover{ color:#fff; }
+  nav.tabs button.active{ color:#fff; border-color: var(--accent); }
+
+  main{ max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  .view{ display:none; animation: fadeIn .35s ease; }
+  .view.active{ display:block; }
+  @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
+
+  /* ---------- Cards / layout ---------- */
+  .panel{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .form-panel{ padding: 32px; max-width: 640px; margin: 0 auto; }
+  .form-title{ font-family:'Fraunces', serif; font-size: 22px; font-weight:600; margin:0 0 6px; }
+  .form-sub{ color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+
+  .field{ margin-bottom: 18px; }
+  .field label{ display:block; font-size: 13px; font-weight:600; margin-bottom:6px; color: var(--primary); }
+  .field .hint{ font-size:12px; color: var(--muted); margin-top:4px; }
+  .row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px){ .row2{ grid-template-columns: 1fr; } }
+
+  input[type=text], input[type=email], select{
+    width:100%; padding: 11px 13px; border-radius:9px;
+    border:1.5px solid var(--border); background:#fbfdff;
+    font-size:14.5px; color: var(--ink); transition: border-color .15s ease;
+  }
+  input:focus, select:focus{ border-color: var(--accent); background:#fff; }
+  select{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235b6b82' stroke-width='1.6' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; }
+
+  .drop{
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 26px;
+    text-align:center;
+    background: #fbfdff;
+    cursor:pointer;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .drop.drag{ border-color: var(--accent); background: #eef6ff; }
+  .drop svg{ width:30px; height:30px; margin-bottom:8px; color: var(--primary-light); }
+  .drop p{ margin:0; font-size:14px; color: var(--muted); }
+  .drop .browse{ color: var(--primary-light); font-weight:600; text-decoration: underline; }
+  .file-chip{
+    display:flex; align-items:center; gap:10px;
+    background:#eef6ff; border:1px solid var(--border); border-radius:10px;
+    padding:10px 12px; margin-top:10px; font-size:13.5px;
+  }
+  .file-chip .name{ font-family:'IBM Plex Mono', monospace; font-weight:500; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .file-chip button{ background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px; font-weight:600; }
+  .error-text{ color: var(--danger); font-size:12.5px; margin-top:6px; display:none; }
+  .error-text.show{ display:block; }
+
+  .submit-btn{
+    width:100%; margin-top:8px;
+    background: var(--primary); color:#fff; border:none;
+    padding: 14px; border-radius: 10px; font-size:15px; font-weight:700;
+    cursor:pointer; transition: background .15s ease, transform .1s ease;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .submit-btn:hover{ background: var(--primary-light); }
+  .submit-btn:disabled{ opacity:0.65; cursor:not-allowed; }
+  .spinner{ width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; animation: spin .7s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+
+  /* ---------- Dashboard ---------- */
+  .dash-head{ display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; flex-wrap:wrap; margin-bottom:22px; }
+  .dash-head h2{ font-family:'Fraunces', serif; font-size:24px; margin:0 0 4px; }
+  .dash-head p{ margin:0; color:var(--muted); font-size:13.5px; }
+  .refresh-btn{
+    background:#fff; border:1.5px solid var(--border); color:var(--primary);
+    padding:9px 15px; border-radius:9px; font-weight:600; font-size:13.5px; cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .refresh-btn:hover{ border-color: var(--accent); }
+  .refresh-btn svg{ width:14px; height:14px; }
+  .refresh-btn.spinning svg{ animation: spin 0.8s linear infinite; }
+
+  .stats{ display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-bottom: 26px; }
+  @media (max-width: 720px){ .stats{ grid-template-columns: repeat(2,1fr); } }
+  .stat{ padding:18px; }
+  .stat .num{ font-family:'Fraunces', serif; font-size:28px; font-weight:600; color: var(--primary); }
+  .stat .lbl{ font-size:12.5px; color:var(--muted); margin-top:2px; }
+
+  .toolbar{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
+  .toolbar input, .toolbar select{ flex:1; min-width:160px; }
+
+  .sub-card{
+    padding:18px 20px; margin-bottom:12px;
+    display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:center;
+  }
+  .sub-card .main-info{ display:flex; flex-direction:column; gap:4px; }
+  .sub-card .title{ font-weight:700; font-size:15px; }
+  .sub-card .meta{ font-size:12.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 10px; }
+  .sub-card .meta .id{ font-family:'IBM Plex Mono', monospace; }
+  .tag{
+    display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em;
+    padding: 3px 9px; border-radius: 100px; background: #eaf1fb; color: var(--primary-light);
+  }
+  .actions{ display:flex; gap:8px; }
+  .actions button, .actions a{
+    border:1.5px solid var(--border); background:#fff; color:var(--primary);
+    padding: 8px 13px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+    text-decoration:none; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+  }
+  .actions .view-btn:hover{ border-color: var(--accent); }
+  .actions .del-btn{ color: var(--danger); }
+  .actions .del-btn:hover{ border-color: var(--danger); background: var(--danger-bg); }
+
+  .empty-state{ text-align:center; padding: 56px 20px; color: var(--muted); }
+  .empty-state svg{ width:44px; height:44px; margin-bottom:14px; color: var(--border); }
+  .empty-state h3{ font-family:'Fraunces', serif; color:var(--ink); margin:0 0 6px; font-size:18px; }
+
+  .skeleton{ height:78px; border-radius:12px; margin-bottom:12px; background: linear-gradient(90deg, #f0f4fa 25%, #e6edf7 37%, #f0f4fa 63%); background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
+  @keyframes shimmer{ 0%{ background-position: 100% 0;} 100%{ background-position: 0 0; } }
+
+  /* ---------- Modal / popup ---------- */
+  .overlay{
+    position:fixed; inset:0; background: rgba(15,30,60,0.45);
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition: opacity .2s ease; z-index: 100;
+  }
+  .overlay.show{ opacity:1; pointer-events:auto; }
+  .modal{
+    background:#fff; border-radius: 18px; max-width: 420px; width:100%;
+    padding: 34px 30px 28px; text-align:center; box-shadow: var(--shadow-lg);
+    transform: translateY(14px) scale(0.97); transition: transform .25s cubic-bezier(.2,.9,.3,1.3);
+  }
+  .overlay.show .modal{ transform: translateY(0) scale(1); }
+  .check-wrap{ width:64px; height:64px; margin:0 auto 18px; border-radius:50%; background: var(--success-bg); display:flex; align-items:center; justify-content:center; }
+  .check-wrap svg{ width:30px; height:30px; }
+  .check-wrap path{ stroke: var(--success); stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray: 40; stroke-dashoffset:40; animation: draw .5s ease .1s forwards; }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+  .modal h3{ font-family:'Fraunces', serif; font-size:20px; margin: 0 0 8px; }
+  .modal p{ color: var(--muted); font-size:14px; margin: 0 0 18px; line-height:1.5; }
+  .modal .sub-id{ font-family:'IBM Plex Mono', monospace; background:#f4f8fd; border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12.5px; color:var(--primary); margin-bottom:20px; word-break: break-all; }
+  .modal-actions{ display:flex; gap:10px; }
+  .modal-actions button{ flex:1; padding:11px; border-radius:9px; font-weight:700; font-size:13.5px; cursor:pointer; }
+  .modal-actions .primary{ background: var(--primary); color:#fff; border:none; }
+  .modal-actions .primary:hover{ background: var(--primary-light); }
+  .modal-actions .ghost{ background:#fff; border:1.5px solid var(--border); color: var(--ink); }
+
+  .toast{
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--ink); color:#fff; padding: 12px 20px; border-radius: 10px; font-size:13.5px;
+    box-shadow: var(--shadow-lg); opacity:0; pointer-events:none; transition: all .25s ease; z-index: 200;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  footer{ text-align:center; padding: 26px 24px 40px; color: var(--muted); font-size:12.5px; }
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Submit Your Project</h2>
-    <form action="https://formspree.io/f/mgogonpb" method="POST">
-        <label for="studentName">Your Name:</label>
-        <input type="text" name="Student Name" id="studentName" required placeholder="Subhadip Sengupta">
+<header class="top">
+  <div class="contour-bg">
+    <svg viewBox="0 0 200 200" fill="none" stroke="#ffffff" stroke-width="1">
+      <path d="M-10 150 Q40 100 90 140 T190 120"/>
+      <path d="M-10 165 Q40 118 90 158 T190 138"/>
+      <path d="M-10 180 Q40 136 90 176 T190 156"/>
+      <path d="M-10 195 Q40 154 90 194 T190 174"/>
+      <path d="M-10 130 Q40 82 90 122 T190 102"/>
+    </svg>
+  </div>
+  <div class="top-inner">
+    <div class="brand">
+      <div class="crest">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M3 20 L8 10 L12 16 L16 6 L21 20 Z" stroke="#163a6e" stroke-width="1.6" stroke-linejoin="round" fill="#dceafd"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="eyebrow">Dooars Academy of Technology</div>
+        <h1>Project Submission Portal</h1>
+      </div>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-view="submit">Submit Project</button>
+    <button class="tab-btn" data-view="dashboard">Dashboard</button>
+  </nav>
+</header>
 
-        <label for="projectTitle">Project Title:</label>
-        <input type="text" name="Project Title" id="projectTitle" required placeholder="portfolio website">
+<main>
 
-        <label for="projectUrl">Project URL Link:</label>
-        <input type="url" name="Project URL" id="projectUrl" required placeholder="https://github.com/... or https://myproject.com">
+  <!-- SUBMIT VIEW -->
+  <section id="view-submit" class="view active">
+    <div class="panel form-panel">
+      <h2 class="form-title">Submit your project</h2>
+      <p class="form-sub">Fill in your details and attach your project report as a PDF (max 5 MB).</p>
 
-        <button type="submit">Submit Project</button>
-    </form>
+      <form id="submitForm" novalidate>
+        <div class="row2">
+          <div class="field">
+            <label for="stuName">Full name</label>
+            <input type="text" id="stuName" required placeholder="Your Name">
+          </div>
+          <div class="field">
+            <label for="stuRoll">University Roll no</label>
+            <input type="text" id="stuRoll" required placeholder="e.g. 199....">
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label for="stuDept">Department</label>
+            <select id="stuDept" required>
+              <option value="" disabled selected>Select department</option>
+              <option>BACHELOR OF COMPUTER APPLICATION</option>
+             </select>
+          </div>
+          <div class="field">
+            <label for="stuSem">Semester</label>
+            <select id="stuSem" required>
+              <option value="" disabled selected>Select semester</option>
+              <option>1</option><option>2</option><option>3</option><option>4</option>
+              <option>5</option><option>6</option><option>7</option><option>8</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="projTitle">Project title</label>
+          <input type="text" id="projTitle" required placeholder="e.g. Smart Irrigation Using IoT Sensors">
+        </div>
+
+        <div class="field">
+          <label for="guideName">Guide / mentor name</label>
+          <input type="text" id="guideName" required placeholder="e.g. Prof. S. Basak">
+        </div>
+
+        <div class="field">
+          <label>Project report (PDF, up to 5 MB)</label>
+          <div class="drop" id="dropZone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke-linecap="round"/></svg>
+            <p>Drag &amp; drop your PDF here, or <span class="browse">browse</span></p>
+            <input type="file" id="fileInput" accept="application/pdf" style="display:none">
+          </div>
+          <div id="fileChip" class="file-chip" style="display:none">
+            <span class="name" id="fileChipName"></span>
+            <span id="fileChipSize"></span>
+            <button type="button" id="removeFile">Remove</button>
+          </div>
+          <div class="error-text" id="fileError">File must be a PDF and no larger than 5 MB.</div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">Submit project</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- DASHBOARD VIEW -->
+  <section id="view-dashboard" class="view">
+    <div class="dash-head">
+      <div>
+        <h2>Submissions dashboard</h2>
+        <p>Live view of all projects submitted through this portal.</p>
+      </div>
+      <button class="refresh-btn" id="refreshBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" stroke-linecap="round"/><path d="M18 4v4h-4M6 20v-4h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Refresh
+      </button>
+    </div>
+
+    <div class="stats">
+      <div class="panel stat"><div class="num" id="statTotal">0</div><div class="lbl">Total submissions</div></div>
+      <div class="panel stat"><div class="num" id="statToday">0</div><div class="lbl">Submitted today</div></div>
+      <div class="panel stat"><div class="num" id="statDepts">0</div><div class="lbl">Departments represented</div></div>
+      <div class="panel stat"><div class="num" id="statSize">0 MB</div><div class="lbl">Total storage used</div></div>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="Search by name, roll no. or title…">
+      <select id="deptFilter"><option value="">All departments</option></select>
+    </div>
+
+    <div id="listContainer">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+  </section>
+
+</main>
+
+<footer>Dooars Academy of Technology · Project Submission Portal · Submissions are visible to everyone using this page</footer>
+
+<!-- Success modal -->
+<div class="overlay" id="successOverlay">
+  <div class="modal">
+    <div class="check-wrap">
+      <svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg>
+    </div>
+    <h3>Submission received</h3>
+    <p id="modalMsg">Your project has been submitted successfully.</p>
+    <div class="sub-id" id="modalSubId"></div>
+    <div class="modal-actions">
+      <button class="ghost" id="modalAnother">Submit another</button>
+      <button class="primary" id="modalDashboard">Go to dashboard</button>
+    </div>
+  </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  let selectedFile = null;
+  let allSubmissions = [];
+
+  // ---------- Tabs ----------
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const views = { submit: document.getElementById('view-submit'), dashboard: document.getElementById('view-dashboard') };
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+  function switchView(name){
+    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
+    Object.entries(views).forEach(([k, el]) => el.classList.toggle('active', k === name));
+    if(name === 'dashboard') loadSubmissions();
+  }
+
+  // ---------- Toast ----------
+  const toastEl = document.getElementById('toast');
+  let toastTimer;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3200);
+  }
+
+  // ---------- File handling ----------
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const fileChip = document.getElementById('fileChip');
+  const fileChipName = document.getElementById('fileChipName');
+  const fileChipSize = document.getElementById('fileChipSize');
+  const fileError = document.getElementById('fileError');
+  const removeFile = document.getElementById('removeFile');
+
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag');
+    if(e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener('change', e => { if(e.target.files.length) handleFile(e.target.files[0]); });
+  removeFile.addEventListener('click', () => { selectedFile = null; fileChip.style.display='none'; dropZone.style.display='block'; fileInput.value=''; });
+
+  function handleFile(file){
+    fileError.classList.remove('show');
+    if(file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')){
+      fileError.textContent = 'Only PDF files are accepted.';
+      fileError.classList.add('show');
+      return;
+    }
+    if(file.size > MAX_SIZE){
+      fileError.textContent = 'File is too large — the limit is 5 MB.';
+      fileError.classList.add('show');
+      return;
+    }
+    selectedFile = file;
+    fileChipName.textContent = file.name;
+    fileChipSize.textContent = formatBytes(file.size);
+    fileChip.style.display = 'flex';
+    dropZone.style.display = 'none';
+  }
+
+  function formatBytes(bytes){
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/(1024*1024)).toFixed(2) + ' MB';
+  }
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = () => reject(new Error('Could not read file'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- Submit form ----------
+  const form = document.getElementById('submitForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if(!form.checkValidity()){ form.reportValidity(); return; }
+    if(!selectedFile){
+      fileError.textContent = 'Please attach your project report as a PDF.';
+      fileError.classList.add('show');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+    try {
+      const base64 = await fileToBase64(selectedFile);
+      const id = (crypto.randomUUID ? crypto.randomUUID() : 'sub-' + Date.now() + '-' + Math.random().toString(16).slice(2)).slice(0, 8);
+      const record = {
+        id,
+        name: document.getElementById('stuName').value.trim(),
+        roll: document.getElementById('stuRoll').value.trim(),
+        department: document.getElementById('stuDept').value,
+        semester: document.getElementById('stuSem').value,
+        title: document.getElementById('projTitle').value.trim(),
+        guide: document.getElementById('guideName').value.trim(),
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileBase64: base64,
+        submittedAt: new Date().toISOString()
+      };
+
+      let persisted = true;
+      try {
+        const result = await window.storage.set('submission:' + id, JSON.stringify(record), true);
+        if(!result) persisted = false;
+      } catch(storageErr){
+        persisted = false;
+      }
+
+      document.getElementById('modalSubId').textContent = 'Submission ID: ' + id;
+      document.getElementById('modalMsg').textContent = persisted
+        ? '"' + record.title + '" has been saved to the dashboard.'
+        : '"' + record.title + '" was received, but the file was too large to store permanently — it will remain viewable only in this browser tab for now.';
+      document.getElementById('successOverlay').classList.add('show');
+
+      form.reset();
+      selectedFile = null;
+      fileChip.style.display = 'none';
+      dropZone.style.display = 'block';
+
+      if(!persisted){
+        allSubmissions.push(record); // session-only fallback so the dashboard can still show it this session
+      }
+    } catch(err){
+      showToast('Something went wrong while submitting. Please try again.');
+      console.error(err);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit project';
+    }
+  });
+
+  document.getElementById('modalAnother').addEventListener('click', () => {
+    document.getElementById('successOverlay').classList.remove('show');
+  });
+  document.getElementById('modalDashboard').addEventListener('click', () => {
+    document.getElementById('successOverlay').classList.remove('show');
+    switchView('dashboard');
+  });
+
+  // ---------- Dashboard ----------
+  const listContainer = document.getElementById('listContainer');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const searchInput = document.getElementById('searchInput');
+  const deptFilter = document.getElementById('deptFilter');
+
+  refreshBtn.addEventListener('click', () => loadSubmissions());
+  searchInput.addEventListener('input', renderList);
+  deptFilter.addEventListener('change', renderList);
+
+  async function loadSubmissions(){
+    refreshBtn.classList.add('spinning');
+    listContainer.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+    const sessionOnly = allSubmissions.filter(r => r.__sessionOnly);
+    try {
+      const listResult = await window.storage.list('submission:', true);
+      const keys = (listResult && listResult.keys) ? listResult.keys : [];
+      const records = [];
+      for(const key of keys){
+        try {
+          const res = await window.storage.get(key, true);
+          if(res && res.value) records.push(JSON.parse(res.value));
+        } catch(e){ /* skip unreadable entry */ }
+      }
+      allSubmissions = records.concat(sessionOnly);
+    } catch(e){
+      showToast('Could not load submissions right now.');
+    }
+    refreshBtn.classList.remove('spinning');
+    populateDeptFilter();
+    renderStats();
+    renderList();
+  }
+
+  function populateDeptFilter(){
+    const current = deptFilter.value;
+    const depts = [...new Set(allSubmissions.map(r => r.department))].sort();
+    deptFilter.innerHTML = '<option value="">All departments</option>' + depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+    deptFilter.value = current;
+  }
+
+  function renderStats(){
+    document.getElementById('statTotal').textContent = allSubmissions.length;
+    const todayStr = new Date().toDateString();
+    const todayCount = allSubmissions.filter(r => new Date(r.submittedAt).toDateString() === todayStr).length;
+    document.getElementById('statToday').textContent = todayCount;
+    document.getElementById('statDepts').textContent = new Set(allSubmissions.map(r => r.department)).size;
+    const totalBytes = allSubmissions.reduce((sum, r) => sum + (r.fileSize || 0), 0);
+    document.getElementById('statSize').textContent = (totalBytes/(1024*1024)).toFixed(1) + ' MB';
+  }
+
+  function renderList(){
+    const q = searchInput.value.trim().toLowerCase();
+    const dept = deptFilter.value;
+    let filtered = allSubmissions.filter(r => {
+      const matchesQ = !q || r.name.toLowerCase().includes(q) || r.roll.toLowerCase().includes(q) || r.title.toLowerCase().includes(q);
+      const matchesDept = !dept || r.department === dept;
+      return matchesQ && matchesDept;
+    });
+    filtered.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+    if(filtered.length === 0){
+      listContainer.innerHTML = `
+        <div class="panel empty-state">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M9 16h6M9 8h6M5 4h10l4 4v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3>${allSubmissions.length === 0 ? 'No submissions yet' : 'No matches found'}</h3>
+          <p>${allSubmissions.length === 0 ? 'The first project submitted will appear here.' : 'Try a different search term or department.'}</p>
+        </div>`;
+      return;
+    }
+
+    listContainer.innerHTML = filtered.map(r => {
+      const dataUri = 'data:application/pdf;base64,' + r.fileBase64;
+      const date = new Date(r.submittedAt);
+      const dateStr = date.toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' }) + ' · ' + date.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+      return `
+        <div class="panel sub-card" data-id="${r.id}">
+          <div class="main-info">
+            <span class="tag">${escapeHtml(r.department)}</span>
+            <span class="title">${escapeHtml(r.title)}</span>
+            <span class="meta">
+              <span>${escapeHtml(r.name)} · ${escapeHtml(r.roll)}</span>
+              <span>Sem ${escapeHtml(r.semester)}</span>
+              <span>Guide: ${escapeHtml(r.guide)}</span>
+            </span>
+            <span class="meta">
+              <span class="id">${r.id}</span>
+              <span>${dateStr}</span>
+              <span>${formatBytes(r.fileSize || 0)}</span>
+            </span>
+          </div>
+          <div class="actions">
+            <a class="view-btn" href="${dataUri}" target="_blank" rel="noopener">View PDF</a>
+            <a class="view-btn" href="${dataUri}" download="${escapeHtml(r.fileName || 'project.pdf')}">Download</a>
+            <button class="del-btn" data-del="${r.id}">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    listContainer.querySelectorAll('[data-del]').forEach(btn => {
+      btn.addEventListener('click', () => deleteSubmission(btn.dataset.del));
+    });
+  }
+
+  async function deleteSubmission(id){
+    if(!confirm('Delete this submission? This cannot be undone.')) return;
+    try { await window.storage.delete('submission:' + id, true); } catch(e){ /* may be session-only */ }
+    allSubmissions = allSubmissions.filter(r => r.id !== id);
+    renderStats();
+    renderList();
+    showToast('Submission deleted.');
+  }
+
+  function escapeHtml(str){
+    return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // Initial load
+  loadSubmissions();
+})();
+</script>
 </body>
 </html>
