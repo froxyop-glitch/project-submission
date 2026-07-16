@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Project Submission</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background-color: #f4f4f9; }
+        .container { max-width: 500px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        h2 { color: #333; }
+        label { display: block; margin-top: 10px; font-weight: bold; }
+        input { width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { margin-top: 15px; padding: 10px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%; }
+        button:hover { background: #218838; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Submit Your Project</h2>
+    <form action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+        <label for="studentName">Your Name:</label>
+        <input type="text" name="Student Name" id="studentName" required placeholder="John Doe">
+
+        <label for="projectTitle">Project Title:</label>
+        <input type="text" name="Project Title" id="projectTitle" required placeholder="E-commerce Website">
+
+        <label for="projectUrl">Project URL Link:</label>
+        <input type="url" name="Project URL" id="projectUrl" required placeholder="https://github.com/... or https://myproject.com">
+
+        <button type="submit">Submit Project</button>
+    </form>
+</div>
+
+</body>
+</html>
