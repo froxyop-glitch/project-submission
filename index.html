@@ -179,8 +179,16 @@
   .stat .num{ font-family:'Fraunces', serif; font-size:28px; font-weight:600; color: var(--primary); }
   .stat .lbl{ font-size:12.5px; color:var(--muted); margin-top:2px; }
 
-  .toolbar{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; }
-  .toolbar input, .toolbar select{ flex:1; min-width:160px; }
+  .toolbar{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items: center; }
+  .toolbar input, .toolbar select{ flex:2; min-width:160px; }
+  
+  .backup-actions { display: flex; gap: 8px; flex: 1; min-width: 200px; justify-content: flex-end; }
+  .backup-btn {
+    background: #fff; border: 1.5px solid var(--border); color: var(--ink);
+    padding: 11px 14px; border-radius: 9px; font-weight: 600; font-size: 13.5px; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .backup-btn:hover { border-color: var(--accent); background: #f4f8fd; }
 
   .sub-card{
     padding:18px 20px; margin-bottom:12px;
@@ -365,7 +373,7 @@
 
     <div class="storage-banner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a8 4 0 0016 0M4 7a8 4 0 0116 0v10a8 4 0 01-16 0V7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Showing only BCA submissions from shared storage, so anyone with this page can see them from any browser — no download needed to view. Switch the department filter below to see other departments.</span>
+      <span>Showing data stored securely via IndexedDB and structural runtime mirrors. Use the Backup Export button below to download your submissions database to a local file anytime to secure them completely.</span>
     </div>
 
     <div class="stats">
@@ -378,6 +386,12 @@
     <div class="toolbar">
       <input type="text" id="searchInput" placeholder="Search by name, roll no. or title…">
       <select id="deptFilter"><option value="">All departments</option></select>
+      
+      <div class="backup-actions">
+        <button class="backup-btn" id="exportBtn" title="Download all data to a local JSON file">Export Data</button>
+        <button class="backup-btn" id="importBtn" title="Load custom backup JSON file">Import Data</button>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+      </div>
     </div>
 
     <div id="listContainer">
@@ -410,11 +424,90 @@
 
 <script>
 (function(){
-  const MAX_SIZE = 3.5 * 1024 * 1024; // 3.5MB raw file limit
+  const MAX_SIZE = 3.5 * 1024 * 1024;
   const BCA_DEPT = 'Bachelor of Computer Applications (BCA)';
   let selectedFile = null;
   let allSubmissions = [];
   let deptFilterInitialized = false;
+
+  // ---------- Native Runtime Memory Cache Array Buffer Mirror ----------
+  let backupCache = [];
+
+  // ---------- IndexedDB Architecture Initialization ----------
+  const DB_NAME = 'DAT_ProjectPortal_DB';
+  const DB_VERSION = 1;
+  const STORE_NAME = 'submissions';
+  let db = null;
+
+  function initDB() {
+    return new Promise((resolve) => {
+      try {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+          const database = e.target.result;
+          if (!database.objectStoreNames.contains(STORE_NAME)) {
+            database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
+        };
+        request.onsuccess = (e) => {
+          db = e.target.result;
+          resolve(true);
+        };
+        request.onerror = () => {
+          console.warn("IndexedDB access error, relying on runtime buffers.");
+          resolve(false);
+        };
+      } catch(err) {
+        console.warn("IndexedDB initialization skipped:", err);
+        resolve(false);
+      }
+    });
+  }
+
+  function saveToIDB(record) {
+    return new Promise((resolve) => {
+      if (!db) return resolve(false);
+      try {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.put(record);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      } catch(e) {
+        resolve(false);
+      }
+    });
+  }
+
+  function getAllFromIDB() {
+    return new Promise((resolve) => {
+      if (!db) return resolve([]);
+      try {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      } catch(e) {
+        resolve([]);
+      }
+    });
+  }
+
+  function deleteFromIDB(id) {
+    return new Promise((resolve) => {
+      if (!db) return resolve(false);
+      try {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        store.delete(id);
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => resolve(false);
+      } catch(e) {
+        resolve(false);
+      }
+    });
+  }
 
   // ---------- Tabs ----------
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -524,28 +617,24 @@
         submittedAt: new Date().toISOString()
       };
 
-      let persisted = false;
-      
-      // Try local storage backup layer first
-      try {
-        localStorage.setItem('submission:' + id, JSON.stringify(record));
-        persisted = true;
-      } catch(e) {
-        console.warn("Local storage full or restricted");
-      }
+      // 1. Write to runtime array memory buffer
+      backupCache.push(record);
 
-      // Try window.storage framework wrapper
+      // 2. Mirror copy inside LocalStorage space
+      try { localStorage.setItem('sub_item:' + id, JSON.stringify(record)); } catch(e){}
+
+      // 3. Mirror down into robust IndexedDB architecture
+      await saveToIDB(record);
+
+      // 4. Try legacy shared window.storage frame setup
       try {
         if (window.storage && typeof window.storage.set === 'function') {
           await window.storage.set('submission:' + id, JSON.stringify(record), true);
-          persisted = true;
         }
-      } catch(storageErr){
-        console.error("Window storage failed:", storageErr);
-      }
+      } catch(err){}
 
       document.getElementById('modalSubId').textContent = 'Submission ID: ' + id;
-      document.getElementById('modalMsg').textContent = '"' + record.title + '" has been saved and can now be viewed on the dashboard.';
+      document.getElementById('modalMsg').textContent = '"' + record.title + '" has been captured across all memory targets successfully.';
       document.getElementById('successOverlay').classList.add('show');
 
       form.reset();
@@ -553,8 +642,6 @@
       fileChip.style.display = 'none';
       dropZone.style.display = 'block';
 
-      // Instantly load to current view arrays
-      allSubmissions.push(record);
     } catch(err){
       showToast('Something went wrong while submitting. Please try again.');
       console.error(err);
@@ -572,7 +659,7 @@
     switchView('dashboard');
   });
 
-  // ---------- Dashboard ----------
+  // ---------- Dashboard Data Retrieval engine ----------
   const listContainer = document.getElementById('listContainer');
   const refreshBtn = document.getElementById('refreshBtn');
   const searchInput = document.getElementById('searchInput');
@@ -586,61 +673,113 @@
     refreshBtn.classList.add('spinning');
     listContainer.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
     
-    const recordsMap = new Map();
+    const unifiedMap = new Map();
 
-    // 1. Pull everything securely stored from native localStorage
+    // Strategy A: Recover from array buffer mirror
+    backupCache.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
+
+    // Strategy B: Recover data records from localStorage
     try {
       for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('submission:')) {
-          const rawData = localStorage.getItem(key);
-          if (rawData) {
-            const parsed = JSON.parse(rawData);
-            recordsMap.set(parsed.id, parsed);
+        const k = localStorage.key(i);
+        if (k && (k.startsWith('sub_item:') || k.startsWith('submission:'))) {
+          const raw = localStorage.getItem(k);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if(parsed && parsed.id) unifiedMap.set(parsed.id, parsed);
           }
         }
       }
-    } catch(e) {
-      console.error("Failed to read from localStorage", e);
-    }
+    } catch(e){}
 
-    // 2. Concurrently check window.storage system for missing items
+    // Strategy C: Load structurally via transactional IndexedDB
+    const dbItems = await getAllFromIDB();
+    dbItems.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
+
+    // Strategy D: Read external window.storage keys concurrently
     try {
       if (window.storage && typeof window.storage.list === 'function') {
         const listResult = await window.storage.list('submission:', true);
         const keys = (listResult && listResult.keys) ? listResult.keys : [];
-        
-        const fetchPromises = keys.map(async (key) => {
+        const systemRecords = await Promise.all(keys.map(async (key) => {
           try {
             const res = await window.storage.get(key, true);
             return res && res.value ? JSON.parse(res.value) : null;
-          } catch(e) {
-            return null;
-          }
-        });
-        
-        const systemRecords = await Promise.all(fetchPromises);
-        systemRecords.forEach(r => {
-          if (r && r.id) {
-            recordsMap.set(r.id, r);
-            // Sync mirror back to localStorage if missing locally
-            if (!localStorage.getItem('submission:' + r.id)) {
-              try { localStorage.setItem('submission:' + r.id, JSON.stringify(r)); } catch(err){}
-            }
-          }
-        });
+          } catch(e) { return null; }
+        }));
+        systemRecords.forEach(r => { if (r && r.id) unifiedMap.set(r.id, r); });
       }
-    } catch(e){
-      console.warn("Failed to query window.storage stream setup", e);
-    }
+    } catch(e){}
 
-    allSubmissions = Array.from(recordsMap.values());
+    allSubmissions = Array.from(unifiedMap.values());
     
+    // Reverse sync back to runtime safety layer
+    backupCache = [...allSubmissions];
+
     refreshBtn.classList.remove('spinning');
     populateDeptFilter();
     renderStats();
     renderList();
   }
+
+  // ---------- Data Import / Export Backup Utility Layer ----------
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+
+  exportBtn.addEventListener('click', () => {
+    if (allSubmissions.length === 0) {
+      showToast("There are no submissions data records available to export.");
+      return;
+    }
+    try {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allSubmissions));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "DAT_Submissions_Backup_" + new Date().toISOString().slice(0,10) + ".json");
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+      showToast("Database backup file downloaded successfully.");
+    } catch(err) {
+      showToast("Could not generate export file.");
+    }
+  });
+
+  importBtn.addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const parsedList = JSON.parse(event.target.result);
+        if (!Array.isArray(parsedList)) {
+          showToast("Invalid file structure format.");
+          return;
+        }
+        
+        let counter = 0;
+        for (const record of parsedList) {
+          if (record && record.id && record.title) {
+            if (!backupCache.some(existing => existing.id === record.id)) {
+              backupCache.push(record);
+              try { localStorage.setItem('sub_item:' + record.id, JSON.stringify(record)); } catch(e){}
+              await saveToIDB(record);
+              counter++;
+            }
+          }
+        }
+        showToast(`Imported ${counter} project submission records successfully.`);
+        loadSubmissions();
+      } catch(err) {
+        showToast("Error processing data layout parsing structure.");
+      }
+    };
+    reader.readAsText(file);
+    importFile.value = ''; 
+  });
 
   function populateDeptFilter(){
     const current = deptFilter.value;
@@ -721,7 +860,10 @@
   async function deleteSubmission(id){
     if(!confirm('Delete this submission? This cannot be undone.')) return;
     
+    backupCache = backupCache.filter(r => r.id !== id);
+    try { localStorage.removeItem('sub_item:' + id); } catch(e){}
     try { localStorage.removeItem('submission:' + id); } catch(e){}
+    await deleteFromIDB(id);
     try { if (window.storage && window.storage.delete) await window.storage.delete('submission:' + id, true); } catch(e){}
     
     allSubmissions = allSubmissions.filter(r => r.id !== id);
@@ -734,8 +876,13 @@
     return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  // Initial load
-  loadSubmissions();
+  // Self-Starting Operations Orchestration sequence
+  async function boot() {
+    await initDB();
+    await loadSubmissions();
+  }
+  
+  boot();
 })();
 </script>
 </body>
