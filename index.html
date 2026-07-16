@@ -38,13 +38,9 @@
   button{ font-family: inherit; }
   :focus-visible{ outline: 2px solid var(--primary-light); outline-offset: 2px; }
 
-  /* ---------- Topographic signature pattern ---------- */
-  .contour-bg{
-    position:absolute; inset:0; overflow:hidden; pointer-events:none;
-  }
+  .contour-bg{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
   .contour-bg svg{ position:absolute; top:-20%; right:-10%; width:640px; height:640px; opacity:0.14; }
 
-  /* ---------- Header ---------- */
   header.top{
     position: relative;
     background: linear-gradient(135deg, var(--primary) 0%, #0f2a54 100%);
@@ -106,7 +102,6 @@
   .view.active{ display:block; }
   @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
 
-  /* ---------- Cards / layout ---------- */
   .panel{
     background: var(--surface);
     border: 1px solid var(--border);
@@ -166,7 +161,6 @@
   .spinner{ width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; animation: spin .7s linear infinite; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
 
-  /* ---------- Dashboard ---------- */
   .dash-head{ display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; flex-wrap:wrap; margin-bottom:22px; }
   .dash-head h2{ font-family:'Fraunces', serif; font-size:24px; margin:0 0 4px; }
   .dash-head p{ margin:0; color:var(--muted); font-size:13.5px; }
@@ -217,7 +211,6 @@
   .skeleton{ height:78px; border-radius:12px; margin-bottom:12px; background: linear-gradient(90deg, #f0f4fa 25%, #e6edf7 37%, #f0f4fa 63%); background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
   @keyframes shimmer{ 0%{ background-position: 100% 0;} 100%{ background-position: 0 0; } }
 
-  /* ---------- Modal / popup ---------- */
   .overlay{
     position:fixed; inset:0; background: rgba(15,30,60,0.45);
     display:flex; align-items:center; justify-content:center; padding:20px;
@@ -249,6 +242,13 @@
     box-shadow: var(--shadow-lg); opacity:0; pointer-events:none; transition: all .25s ease; z-index: 200;
   }
   .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  .storage-banner{
+    display:flex; align-items:center; gap:10px;
+    background:#eef6ff; border:1px solid var(--border); border-radius:10px;
+    padding:10px 14px; font-size:12.5px; color: var(--primary); margin-bottom:18px;
+  }
+  .storage-banner svg{ width:16px; height:16px; flex-shrink:0; }
 
   footer{ text-align:center; padding: 26px 24px 40px; color: var(--muted); font-size:12.5px; }
 </style>
@@ -290,7 +290,7 @@
   <section id="view-submit" class="view active">
     <div class="panel form-panel">
       <h2 class="form-title">Submit your project</h2>
-      <p class="form-sub">Fill in your details and attach your project report as a PDF (max 5 MB).</p>
+      <p class="form-sub">Fill in your details and attach your project report as a PDF (max 3.5 MB). Once submitted, it's saved to the shared dashboard and can be opened from any browser or device — even before you download it.</p>
 
       <form id="submitForm" novalidate>
         <div class="row2">
@@ -299,8 +299,8 @@
             <input type="text" id="stuName" required placeholder="Your Name">
           </div>
           <div class="field">
-            <label for="stuRoll">University Roll no</label>
-            <input type="text" id="stuRoll" required placeholder="e.g. 199....">
+            <label for="stuRoll">Roll</label>
+            <input type="text" id="stuRoll" required placeholder="Enter University Roll No">
           </div>
         </div>
 
@@ -309,8 +309,8 @@
             <label for="stuDept">Department</label>
             <select id="stuDept" required>
               <option value="" disabled selected>Select department</option>
-              <option>BACHELOR OF COMPUTER APPLICATION</option>
-             </select>
+              <option>Bachelor of Computer Applications (BCA)</option>
+              </select>
           </div>
           <div class="field">
             <label for="stuSem">Semester</label>
@@ -333,7 +333,7 @@
         </div>
 
         <div class="field">
-          <label>Project report (PDF, up to 5 MB)</label>
+          <label>Project report (PDF, up to 3.5 MB)</label>
           <div class="drop" id="dropZone">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke-linecap="round"/></svg>
             <p>Drag &amp; drop your PDF here, or <span class="browse">browse</span></p>
@@ -344,7 +344,7 @@
             <span id="fileChipSize"></span>
             <button type="button" id="removeFile">Remove</button>
           </div>
-          <div class="error-text" id="fileError">File must be a PDF and no larger than 5 MB.</div>
+          <div class="error-text" id="fileError">File must be a PDF and no larger than 3.5 MB.</div>
         </div>
 
         <button type="submit" class="submit-btn" id="submitBtn">Submit project</button>
@@ -357,12 +357,17 @@
     <div class="dash-head">
       <div>
         <h2>Submissions dashboard</h2>
-        <p>Live view of all projects submitted through this portal.</p>
+        <p>Streaming BCA (Bachelor of Computer Applications) submissions — synced across every browser and device.</p>
       </div>
       <button class="refresh-btn" id="refreshBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" stroke-linecap="round"/><path d="M18 4v4h-4M6 20v-4h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Refresh
       </button>
+    </div>
+
+    <div class="storage-banner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a8 4 0 0016 0M4 7a8 4 0 0116 0v10a8 4 0 01-16 0V7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span>Showing only BCA submissions from shared storage, so anyone with this page can see them from any browser — no download needed to view. Switch the department filter below to see other departments.</span>
     </div>
 
     <div class="stats">
@@ -408,9 +413,14 @@
 
 <script>
 (function(){
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+  // PDFs are base64-encoded before storage, which inflates size by ~33%.
+  // Shared storage caps each value at 5MB, so the raw file limit is kept
+  // well under that so every accepted file reliably persists and syncs.
+  const MAX_SIZE = 3.5 * 1024 * 1024; // 3.5MB raw file limit
+  const BCA_DEPT = 'Bachelor of Computer Applications (BCA)';
   let selectedFile = null;
   let allSubmissions = [];
+  let deptFilterInitialized = false;
 
   // ---------- Tabs ----------
   const tabBtns = document.querySelectorAll('.tab-btn');
@@ -461,7 +471,7 @@
       return;
     }
     if(file.size > MAX_SIZE){
-      fileError.textContent = 'File is too large — the limit is 5 MB.';
+      fileError.textContent = 'File is too large — the limit is 3.5 MB.';
       fileError.classList.add('show');
       return;
     }
@@ -520,18 +530,22 @@
         submittedAt: new Date().toISOString()
       };
 
+      // Saved to SHARED storage: viewable from any browser/device on this
+      // page, immediately, before anyone downloads the PDF.
       let persisted = true;
+      let persistError = '';
       try {
         const result = await window.storage.set('submission:' + id, JSON.stringify(record), true);
         if(!result) persisted = false;
       } catch(storageErr){
         persisted = false;
+        persistError = (storageErr && storageErr.message) ? storageErr.message : '';
       }
 
       document.getElementById('modalSubId').textContent = 'Submission ID: ' + id;
       document.getElementById('modalMsg').textContent = persisted
-        ? '"' + record.title + '" has been saved to the dashboard.'
-        : '"' + record.title + '" was received, but the file was too large to store permanently — it will remain viewable only in this browser tab for now.';
+        ? '"' + record.title + '" has been saved and can now be viewed on the dashboard from any browser.'
+        : '"' + record.title + '" was received, but could not be saved permanently' + (persistError ? (' (' + persistError + ')') : '') + '. It will only be viewable in this browser tab for now — please try resubmitting.';
       document.getElementById('successOverlay').classList.add('show');
 
       form.reset();
@@ -540,6 +554,7 @@
       dropZone.style.display = 'block';
 
       if(!persisted){
+        record.__sessionOnly = true;
         allSubmissions.push(record); // session-only fallback so the dashboard can still show it this session
       }
     } catch(err){
@@ -597,7 +612,14 @@
     const current = deptFilter.value;
     const depts = [...new Set(allSubmissions.map(r => r.department))].sort();
     deptFilter.innerHTML = '<option value="">All departments</option>' + depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
-    deptFilter.value = current;
+
+    if(!deptFilterInitialized){
+      // Stream only BCA submissions by default on first load, if any exist.
+      deptFilter.value = depts.includes(BCA_DEPT) ? BCA_DEPT : current;
+      deptFilterInitialized = true;
+    } else {
+      deptFilter.value = current;
+    }
   }
 
   function renderStats(){
