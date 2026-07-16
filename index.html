@@ -452,10 +452,7 @@
   let isAuthenticated = false;
 
   // ---------- Google Drive backend (Apps Script Web App) ----------
-  // 1. Deploy the accompanying Code.gs as a Web App under froxyop@gmail.com
-  //    (Execute as: Me, Who has access: Anyone).
-  // 2. Paste the deployment URL below.
-  const DRIVE_SCRIPT_URL = 'PASTE_YOUR_APPS_SCRIPT_WEB_APP_URL_HERE';
+  const DRIVE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyT-QQ_88QWZCLGWoLvT2wWHyvmbOgX7LJULfR6OQn3_CkijuxnGqTcFNbV_K-FgxcEdQ/exec';
 
   function driveConfigured(){
     return DRIVE_SCRIPT_URL && DRIVE_SCRIPT_URL.indexOf('https://script.google.com') === 0;
