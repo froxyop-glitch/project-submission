@@ -118,7 +118,7 @@
   .row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 560px){ .row2{ grid-template-columns: 1fr; } }
 
-  input[type=text], input[type=email], select{
+  input[type=text], input[type=password], select{
     width:100%; padding: 11px 13px; border-radius:9px;
     border:1.5px solid var(--border); background:#fbfdff;
     font-size:14.5px; color: var(--ink); transition: border-color .15s ease;
@@ -203,12 +203,12 @@
     padding: 3px 9px; border-radius: 100px; background: #eaf1fb; color: var(--primary-light);
   }
   .actions{ display:flex; gap:8px; }
-  .actions button, .actions a{
+  .actions button{
     border:1.5px solid var(--border); background:#fff; color:var(--primary);
     padding: 8px 13px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
-    text-decoration:none; display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
+    display:inline-flex; align-items:center; gap:5px; white-space:nowrap;
   }
-  .actions .view-btn:hover{ border-color: var(--accent); }
+  .actions button:hover{ border-color: var(--accent); }
   .actions .del-btn{ color: var(--danger); }
   .actions .del-btn:hover{ border-color: var(--danger); background: var(--danger-bg); }
 
@@ -231,6 +231,9 @@
     transform: translateY(14px) scale(0.97); transition: transform .25s cubic-bezier(.2,.9,.3,1.3);
   }
   .overlay.show .modal{ transform: translateY(0) scale(1); }
+  
+  .auth-panel { padding: 40px; max-width: 440px; margin: 60px auto; }
+
   .check-wrap{ width:64px; height:64px; margin:0 auto 18px; border-radius:50%; background: var(--success-bg); display:flex; align-items:center; justify-content:center; }
   .check-wrap svg{ width:30px; height:30px; }
   .check-wrap path{ stroke: var(--success); stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray: 40; stroke-dashoffset:40; animation: draw .5s ease .1s forwards; }
@@ -297,7 +300,7 @@
   <section id="view-submit" class="view active">
     <div class="panel form-panel">
       <h2 class="form-title">Submit your project</h2>
-      <p class="form-sub">Fill in your details and attach your project report as a PDF (max 3.5 MB). Once submitted, it's saved to the shared dashboard and can be opened from any browser or device — even before you download it.</p>
+      <p class="form-sub">Fill in your details and attach your project report as a PDF (max 3.5 MB). Once submitted, it's saved securely to the system dashboard.</p>
 
       <form id="submitForm" novalidate>
         <div class="row2">
@@ -359,6 +362,23 @@
     </div>
   </section>
 
+  <section id="view-auth" class="view">
+    <div class="panel auth-panel">
+      <h2 class="form-title" style="text-align:center; margin-bottom: 20px;">Dashboard Access Verification</h2>
+      <form id="authForm">
+        <div class="field">
+          <label for="authId">User Identification ID</label>
+          <input type="text" id="authId" required placeholder="Enter Admin ID">
+        </div>
+        <div class="field">
+          <label for="authPass">Security Passkey</label>
+          <input type="password" id="authPass" required placeholder="Enter Secret Password">
+        </div>
+        <button type="submit" class="submit-btn" style="margin-top: 15px;">Authenticate Security Credentials</button>
+      </form>
+    </div>
+  </section>
+
   <section id="view-dashboard" class="view">
     <div class="dash-head">
       <div>
@@ -403,7 +423,7 @@
 
 </main>
 
-<footer>Dooars Academy of Technology · Project Submission Portal · Submissions are visible to everyone using this page</footer>
+<footer>Dooars Academy of Technology · Project Submission Portal · Submissions are visible to authorized management personnel</footer>
 
 <div class="overlay" id="successOverlay">
   <div class="modal">
@@ -429,6 +449,7 @@
   let selectedFile = null;
   let allSubmissions = [];
   let deptFilterInitialized = false;
+  let isAuthenticated = false;
 
   // ---------- Native Runtime Memory Cache Array Buffer Mirror ----------
   let backupCache = [];
@@ -509,17 +530,48 @@
     });
   }
 
-  // ---------- Tabs ----------
+  // ---------- Tabs Navigation and Access Guard Logic ----------
   const tabBtns = document.querySelectorAll('.tab-btn');
-  const views = { submit: document.getElementById('view-submit'), dashboard: document.getElementById('view-dashboard') };
+  const views = { 
+    submit: document.getElementById('view-submit'), 
+    auth: document.getElementById('view-auth'),
+    dashboard: document.getElementById('view-dashboard') 
+  };
+
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => switchView(btn.dataset.view));
   });
+
   function switchView(name){
+    let targetedView = name;
+    
+    // Reroute to authentication panel if access security checks clear out false
+    if(name === 'dashboard' && !isAuthenticated) {
+      targetedView = 'auth';
+    }
+
     tabBtns.forEach(b => b.classList.toggle('active', b.dataset.view === name));
-    Object.entries(views).forEach(([k, el]) => el.classList.toggle('active', k === name));
-    if(name === 'dashboard') loadSubmissions();
+    Object.entries(views).forEach(([k, el]) => el.classList.toggle('active', k === targetedView));
+    
+    if(targetedView === 'dashboard') loadSubmissions();
   }
+
+  // ---------- Gatekeeper Dashboard Security Verification Authentication ----------
+  const authForm = document.getElementById('authForm');
+  authForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const idVal = document.getElementById('authId').value.trim();
+    const passVal = document.getElementById('authPass').value;
+
+    if(idVal === "Akash Dhar" && passVal === "199") {
+      isAuthenticated = true;
+      showToast("Access Authorized. Processing dashboard data streams...");
+      authForm.reset();
+      switchView('dashboard');
+    } else {
+      showToast("Access Denied. Invalid operational credentials.");
+    }
+  });
 
   // ---------- Toast ----------
   const toastEl = document.getElementById('toast');
@@ -584,6 +636,51 @@
     });
   }
 
+  // Helper routine to reliably open/download PDFs inside restrictive/sandboxed iframes via Blobs
+  function handlePdfAction(base64Data, filename, actionType) {
+    try {
+      const byteCharacters = atob(base64Data);
+      const byteNumbers = new Array(byteCharacters.length);
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+      }
+      const byteArray = new Uint8Array(byteNumbers);
+      const blob = new Blob([byteArray], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (actionType === 'view') {
+        const newTab = window.open();
+        if (newTab) {
+          newTab.document.title = filename;
+          const iframe = newTab.document.createElement('iframe');
+          iframe.src = blobUrl;
+          iframe.style.width = '100%';
+          iframe.style.height = '100vh';
+          iframe.style.border = 'none';
+          iframe.style.margin = '0';
+          newTab.document.body.style.margin = '0';
+          newTab.document.body.appendChild(iframe);
+        } else {
+          // Fallback if popup blocker hits
+          window.location.href = blobUrl;
+        }
+      } else if (actionType === 'download') {
+        const dlAnchor = document.createElement('a');
+        dlAnchor.href = blobUrl;
+        dlAnchor.download = filename;
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        dlAnchor.remove();
+      }
+      
+      // Clear allocation memory footprint shortly after execution completes
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    } catch(err) {
+      showToast("Unable to decode PDF stream structure data object.");
+      console.error(err);
+    }
+  }
+
   // ---------- Submit form ----------
   const form = document.getElementById('submitForm');
   const submitBtn = document.getElementById('submitBtn');
@@ -617,16 +714,11 @@
         submittedAt: new Date().toISOString()
       };
 
-      // 1. Write to runtime array memory buffer
       backupCache.push(record);
 
-      // 2. Mirror copy inside LocalStorage space
       try { localStorage.setItem('sub_item:' + id, JSON.stringify(record)); } catch(e){}
-
-      // 3. Mirror down into robust IndexedDB architecture
       await saveToIDB(record);
 
-      // 4. Try legacy shared window.storage frame setup
       try {
         if (window.storage && typeof window.storage.set === 'function') {
           await window.storage.set('submission:' + id, JSON.stringify(record), true);
@@ -675,10 +767,8 @@
     
     const unifiedMap = new Map();
 
-    // Strategy A: Recover from array buffer mirror
     backupCache.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
 
-    // Strategy B: Recover data records from localStorage
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
@@ -692,11 +782,9 @@
       }
     } catch(e){}
 
-    // Strategy C: Load structurally via transactional IndexedDB
     const dbItems = await getAllFromIDB();
     dbItems.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
 
-    // Strategy D: Read external window.storage keys concurrently
     try {
       if (window.storage && typeof window.storage.list === 'function') {
         const listResult = await window.storage.list('submission:', true);
@@ -712,8 +800,6 @@
     } catch(e){}
 
     allSubmissions = Array.from(unifiedMap.values());
-    
-    // Reverse sync back to runtime safety layer
     backupCache = [...allSubmissions];
 
     refreshBtn.classList.remove('spinning');
@@ -825,7 +911,6 @@
     }
 
     listContainer.innerHTML = filtered.map(r => {
-      const dataUri = 'data:application/pdf;base64,' + r.fileBase64;
       const date = new Date(r.submittedAt);
       const dateStr = date.toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' }) + ' · ' + date.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
       return `
@@ -845,12 +930,27 @@
             </span>
           </div>
           <div class="actions">
-            <a class="view-btn" href="${dataUri}" target="_blank" rel="noopener">View PDF</a>
-            <a class="view-btn" href="${dataUri}" download="${escapeHtml(r.fileName || 'project.pdf')}">Download</a>
+            <button class="view-pdf-btn" data-viewid="${r.id}">View PDF</button>
+            <button class="dl-pdf-btn" data-dlid="${r.id}">Download</button>
             <button class="del-btn" data-del="${r.id}">Delete</button>
           </div>
         </div>`;
     }).join('');
+
+    // Attach functional event drivers to actions selectors
+    listContainer.querySelectorAll('.view-pdf-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entry = allSubmissions.find(r => r.id === btn.dataset.viewid);
+        if(entry) handlePdfAction(entry.fileBase64, entry.fileName, 'view');
+      });
+    });
+
+    listContainer.querySelectorAll('.dl-pdf-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entry = allSubmissions.find(r => r.id === btn.dataset.dlid);
+        if(entry) handlePdfAction(entry.fileBase64, entry.fileName, 'download');
+      });
+    });
 
     listContainer.querySelectorAll('[data-del]').forEach(btn => {
       btn.addEventListener('click', () => deleteSubmission(btn.dataset.del));
@@ -876,7 +976,6 @@
     return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
-  // Self-Starting Operations Orchestration sequence
   async function boot() {
     await initDB();
     await loadSubmissions();
