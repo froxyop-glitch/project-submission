@@ -451,8 +451,8 @@
   let deptFilterInitialized = false;
   let isAuthenticated = false;
 
-  // ---------- Google Drive backend (Apps Script Web App) ----------
-  const DRIVE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyT-QQ_88QWZCLGWoLvT2wWHyvmbOgX7LJULfR6OQn3_CkijuxnGqTcFNbV_K-FgxcEdQ/exec';
+  // ---------- Google Drive & Sheet backend (Apps Script Web App) ----------
+  const DRIVE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz40JIWblZrh6llT08eM393IvTcSz-9froBartIRzf7MHG9XXLDvkPY6YuSDnuNvkouKQ/exec';
 
   function driveConfigured(){
     return DRIVE_SCRIPT_URL && DRIVE_SCRIPT_URL.indexOf('https://script.google.com') === 0;
@@ -668,7 +668,6 @@
 
   // Helper routine to reliably open/download PDFs inside restrictive/sandboxed iframes via Blobs
   function handlePdfAction(record, actionType) {
-    // Prefer the Drive-hosted copy when we have one — smaller payload, works across devices.
     if(record.driveFileUrl){
       if(actionType === 'view'){
         window.open(record.driveFileUrl, '_blank');
@@ -678,7 +677,7 @@
       return;
     }
     if(!record.fileBase64){
-      showToast('This submission has no local file copy and Drive is not configured.');
+      showToast('This submission has no copy available.');
       return;
     }
     try {
@@ -755,13 +754,13 @@
         submittedAt: new Date().toISOString()
       };
 
-      // Try Google Drive first — this is the shared, cross-device copy of record of truth.
+      // Try Google Drive first
       const driveResult = await uploadToDrive(record);
       if(driveResult && driveResult.success){
         record.driveFileId = driveResult.fileId;
         record.driveFileUrl = driveResult.fileUrl;
         record.driveDownloadUrl = driveResult.downloadUrl || driveResult.fileUrl;
-        // Once safely in Drive, don't also carry the heavy base64 in local mirrors.
+        // Strip out heavy local base64 since it uploaded successfully
         delete record.fileBase64;
       }
 
@@ -769,12 +768,6 @@
 
       try { localStorage.setItem('sub_item:' + id, JSON.stringify(record)); } catch(e){}
       await saveToIDB(record);
-
-      try {
-        if (window.storage && typeof window.storage.set === 'function') {
-          await window.storage.set('submission:' + id, JSON.stringify(record), true);
-        }
-      } catch(err){}
 
       document.getElementById('modalSubId').textContent = 'Submission ID: ' + id;
       document.getElementById('modalMsg').textContent = driveResult && driveResult.success
@@ -820,17 +813,19 @@
 
     const banner = document.getElementById('storageBannerText');
     banner.textContent = driveConfigured()
-      ? 'Showing submissions synced from Google Drive (froxyop@gmail.com), with local mirrors as backup.'
+      ? 'Showing submissions synced from Google Drive via Google Sheets backend, with local mirrors as backup.'
       : 'Google Drive isn\'t configured yet — paste your Apps Script URL into DRIVE_SCRIPT_URL. Falling back to local/browser storage only.';
     
     const unifiedMap = new Map();
 
+    // 1. Gather any runtime caches
     backupCache.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
 
+    // 2. Local storage caches
     try {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && (k.startsWith('sub_item:') || k.startsWith('submission:'))) {
+        if (k && k.startsWith('sub_item:')) {
           const raw = localStorage.getItem(k);
           if (raw) {
             const parsed = JSON.parse(raw);
@@ -840,24 +835,11 @@
       }
     } catch(e){}
 
+    // 3. IndexedDB caches
     const dbItems = await getAllFromIDB();
     dbItems.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
 
-    try {
-      if (window.storage && typeof window.storage.list === 'function') {
-        const listResult = await window.storage.list('submission:', true);
-        const keys = (listResult && listResult.keys) ? listResult.keys : [];
-        const systemRecords = await Promise.all(keys.map(async (key) => {
-          try {
-            const res = await window.storage.get(key, true);
-            return res && res.value ? JSON.parse(res.value) : null;
-          } catch(e) { return null; }
-        }));
-        systemRecords.forEach(r => { if (r && r.id) unifiedMap.set(r.id, r); });
-      }
-    } catch(e){}
-
-    // Google Drive / Sheet is the authoritative shared source — let it win on conflicts.
+    // 4. Google Drive (authoritative database records)
     const driveRecords = await fetchFromDrive();
     driveRecords.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
 
@@ -1024,9 +1006,7 @@
     
     backupCache = backupCache.filter(r => r.id !== id);
     try { localStorage.removeItem('sub_item:' + id); } catch(e){}
-    try { localStorage.removeItem('submission:' + id); } catch(e){}
     await deleteFromIDB(id);
-    try { if (window.storage && window.storage.delete) await window.storage.delete('submission:' + id, true); } catch(e){}
     await deleteFromDrive(id);
     
     allSubmissions = allSubmissions.filter(r => r.id !== id);
