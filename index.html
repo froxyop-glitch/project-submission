@@ -636,13 +636,8 @@
     });
   }
 
-  // Helper function to safely clean up strings for file naming limits
-  function sanitizeFilename(str) {
-    return str.replace(/[^a-zA-Z0-9_\-]/g, '_');
-  }
-
   // Helper routine to reliably open/download PDFs inside restrictive/sandboxed iframes via Blobs
-  function handlePdfAction(base64Data, record, actionType) {
+  function handlePdfAction(base64Data, filename, actionType) {
     try {
       const byteCharacters = atob(base64Data);
       const byteNumbers = new Array(byteCharacters.length);
@@ -653,13 +648,10 @@
       const blob = new Blob([byteArray], { type: 'application/pdf' });
       const blobUrl = URL.createObjectURL(blob);
 
-      // Construct a clean, standardized filename based on student identity criteria
-      const customFilename = sanitizeFilename(record.name) + "_" + sanitizeFilename(record.roll) + ".pdf";
-
       if (actionType === 'view') {
         const newTab = window.open();
         if (newTab) {
-          newTab.document.title = customFilename;
+          newTab.document.title = filename;
           const iframe = newTab.document.createElement('iframe');
           iframe.src = blobUrl;
           iframe.style.width = '100%';
@@ -669,12 +661,13 @@
           newTab.document.body.style.margin = '0';
           newTab.document.body.appendChild(iframe);
         } else {
+          // Fallback if popup blocker hits
           window.location.href = blobUrl;
         }
       } else if (actionType === 'download') {
         const dlAnchor = document.createElement('a');
         dlAnchor.href = blobUrl;
-        dlAnchor.download = customFilename;
+        dlAnchor.download = filename;
         document.body.appendChild(dlAnchor);
         dlAnchor.click();
         dlAnchor.remove();
@@ -829,14 +822,7 @@
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allSubmissions));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute("href", dataStr);
-      
-      // If there is exactly one submission in view, save it as Name_Roll.json, otherwise dynamic bulk database name
-      let filename = "DAT_Submissions_Backup_" + new Date().toISOString().slice(0,10) + ".json";
-      if(allSubmissions.length === 1) {
-        filename = sanitizeFilename(allSubmissions[0].name) + "_" + sanitizeFilename(allSubmissions[0].roll) + ".json";
-      }
-
-      downloadAnchor.setAttribute("download", filename);
+      downloadAnchor.setAttribute("download", "DAT_Submissions_Backup_" + new Date().toISOString().slice(0,10) + ".json");
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -955,14 +941,14 @@
     listContainer.querySelectorAll('.view-pdf-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const entry = allSubmissions.find(r => r.id === btn.dataset.viewid);
-        if(entry) handlePdfAction(entry.fileBase64, entry, 'view');
+        if(entry) handlePdfAction(entry.fileBase64, entry.fileName, 'view');
       });
     });
 
     listContainer.querySelectorAll('.dl-pdf-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const entry = allSubmissions.find(r => r.id === btn.dataset.dlid);
-        if(entry) handlePdfAction(entry.fileBase64, entry, 'download');
+        if(entry) handlePdfAction(entry.fileBase64, entry.fileName, 'download');
       });
     });
 
