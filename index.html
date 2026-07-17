@@ -5,132 +5,191 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dooars Academy of Technology And Management — Project Submission Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #eef3fa;
-    --surface: #ffffff;
-    --primary: #163a6e;
-    --primary-light: #2f5fa8;
-    --accent: #4a90d9;
-    --ink: #17233d;
-    --muted: #5b6b82;
-    --border: #dce6f2;
-    --success: #1e8e5a;
-    --success-bg: #e7f6ee;
-    --danger: #c0392b;
-    --danger-bg: #fbebe9;
-    --radius: 14px;
-    --shadow: 0 4px 18px rgba(22, 58, 110, 0.08);
-    --shadow-lg: 0 20px 60px rgba(22, 58, 110, 0.22);
+    --bg-top: #ffe1ee;
+    --bg-mid: #d9c8fb;
+    --bg-bottom: #8fd6ef;
+    --surface: rgba(255, 255, 255, 0.74);
+    --surface-solid: #fffbfe;
+    --primary: #6a3fd1;
+    --primary-light: #9a6bff;
+    --accent: #ff5da8;
+    --accent2: #45d9ff;
+    --gold: #ffcf5c;
+    --ink: #2c1e52;
+    --muted: #7d6ea3;
+    --border: rgba(154, 107, 255, 0.22);
+    --success: #22b98a;
+    --success-bg: #e2fbf1;
+    --danger: #ff5c7a;
+    --danger-bg: #ffeef2;
+    --radius: 20px;
+    --shadow: 0 10px 30px rgba(106, 63, 209, 0.14), 0 2px 8px rgba(255, 93, 168, 0.10);
+    --shadow-lg: 0 26px 70px rgba(106, 63, 209, 0.32), 0 0 0 1px rgba(255,255,255,0.4) inset;
   }
   *{ box-sizing: border-box; }
   html{ scroll-behavior: smooth; }
-  body{ margin:0; font-family:'Inter', sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  body{
+    margin:0; font-family:'Poppins', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(ellipse 60% 40% at 12% 8%, rgba(255,255,255,0.9), transparent 60%),
+      radial-gradient(ellipse 50% 35% at 88% 6%, rgba(255,255,255,0.7), transparent 60%),
+      linear-gradient(180deg, var(--bg-top) 0%, var(--bg-mid) 48%, var(--bg-bottom) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before, body::after{
+    content:""; position: fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  body::before{
+    background-image:
+      radial-gradient(3px 3px at 10% 22%, #fff, transparent),
+      radial-gradient(2.5px 2.5px at 82% 14%, #fff, transparent),
+      radial-gradient(2px 2px at 34% 62%, #ffe9f5, transparent),
+      radial-gradient(3px 3px at 66% 78%, #fff, transparent),
+      radial-gradient(2px 2px at 92% 55%, #ffe9f5, transparent),
+      radial-gradient(2.5px 2.5px at 20% 88%, #fff, transparent),
+      radial-gradient(2px 2px at 55% 30%, #fff, transparent);
+    background-repeat: no-repeat; opacity: 0.85;
+    animation: twinkle 4.5s ease-in-out infinite;
+  }
+  body::after{
+    background-image:
+      radial-gradient(ellipse 160px 60px at 15% 18%, rgba(255,255,255,0.55), transparent 70%),
+      radial-gradient(ellipse 200px 70px at 78% 10%, rgba(255,255,255,0.45), transparent 70%),
+      radial-gradient(ellipse 140px 55px at 92% 40%, rgba(255,255,255,0.4), transparent 70%);
+    animation: driftClouds 26s ease-in-out infinite alternate;
+  }
+  @keyframes twinkle{ 0%,100%{ opacity:0.55; } 50%{ opacity:1; } }
+  @keyframes driftClouds{ 0%{ transform: translateX(-16px) translateY(0); } 100%{ transform: translateX(18px) translateY(10px); } }
+  @keyframes floatY{ 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-7px); } }
+  @keyframes floatYSlow{ 0%,100%{ transform: translateY(0) rotate(0deg); } 50%{ transform: translateY(-5px) rotate(0.4deg); } }
+  @keyframes glowPulse{ 0%,100%{ box-shadow: var(--shadow); } 50%{ box-shadow: 0 12px 34px rgba(255, 93, 168, 0.22), 0 2px 10px rgba(69, 217, 255, 0.16); } }
   ::selection{ background: var(--accent); color:#fff; }
   a{ color: inherit; }
   button{ font-family: inherit; }
-  :focus-visible{ outline: 2px solid var(--primary-light); outline-offset: 2px; }
+  :focus-visible{ outline: 2px solid var(--accent2); outline-offset: 2px; }
 
  .contour-bg{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
- .contour-bg svg{ position:absolute; top:-20%; right:-10%; width:640px; height:640px; opacity:0.14; }
-  header.top{ position: relative; background: linear-gradient(135deg, var(--primary) 0%, #0f2a54 100%); color: #fff; overflow: hidden; }
+ .contour-bg svg{ position:absolute; top:-20%; right:-10%; width:640px; height:640px; opacity:0.22; animation: floatYSlow 9s ease-in-out infinite; }
+  header.top{ position: relative; background: linear-gradient(135deg, #7a4bdc 0%, #ff6fb0 55%, #45d9ff 130%); color: #fff; overflow: hidden; z-index:1; }
+  header.top::after{ content:""; position:absolute; inset:0; background: linear-gradient(180deg, rgba(255,255,255,0) 60%, rgba(255,255,255,0.14) 100%); pointer-events:none; }
  .top-inner{ position: relative; max-width: 1100px; margin: 0 auto; padding: 28px 24px 0; display:flex; align-items:center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
  .brand{ display:flex; align-items:center; gap:14px; }
- .crest{ width:52px; height:52px; border-radius: 50%; background: radial-gradient(circle at 30% 25%, #dcebff, #6fa3e0 55%, #2a5aa0 100%); display:flex; align-items:center; justify-content:center; box-shadow: 0 3px 10px rgba(0,0,0,0.25), inset 0 0 0 2px rgba(255,255,255,0.35); flex-shrink:0; }
+ .crest{ width:52px; height:52px; border-radius: 50%; background: radial-gradient(circle at 30% 25%, #fff1fa, #ff9ecb 55%, #7a4bdc 100%); display:flex; align-items:center; justify-content:center; box-shadow: 0 4px 14px rgba(255,93,168,0.35), inset 0 0 0 2px rgba(255,255,255,0.5); flex-shrink:0; animation: floatY 5s ease-in-out infinite; }
  .crest svg{ width:30px; height:30px; }
- .brand-text.eyebrow{ font-family:'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #b7cdf0; }
- .brand-text h1{ font-family:'Fraunces', serif; font-weight: 600; font-size: clamp(20px, 3vw, 27px); margin: 2px 0 0; letter-spacing: 0.01em; }
-  nav.tabs{ display:flex; gap:4px; position: relative; max-width: 1100px; margin: 22px auto 0; padding: 0 24px; }
-  nav.tabs button{ background:none; border:none; color: #cddcf3; padding: 12px 18px; font-size: 14.5px; font-weight: 600; cursor:pointer; border-bottom: 3px solid transparent; transition: color.18s ease, border-color.18s ease; }
-  nav.tabs button:hover{ color:#fff; }
-  nav.tabs button.active{ color:#fff; border-color: var(--accent); }
-  main{ max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+ .brand-text.eyebrow{ font-family:'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #ffe1f3; }
+ .brand-text h1{ font-family:'Baloo 2', sans-serif; font-weight: 700; font-size: clamp(20px, 3vw, 28px); margin: 2px 0 0; letter-spacing: 0.01em; }
+  nav.tabs{ display:flex; gap:4px; position: relative; max-width: 1100px; margin: 22px auto 0; padding: 0 24px; z-index:1; }
+  nav.tabs button{ background:none; border:none; color: #ffe1f3; padding: 12px 18px; font-size: 14.5px; font-weight: 600; cursor:pointer; border-bottom: 3px solid transparent; border-radius: 8px 8px 0 0; transition: color.18s ease, border-color.18s ease, background.18s ease; }
+  nav.tabs button:hover{ color:#fff; background: rgba(255,255,255,0.1); }
+  nav.tabs button.active{ color:#fff; border-color: var(--gold); }
+  main{ max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; position: relative; z-index:1; }
+
+ .chibi-layer{ position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:1; }
+ .chibi{ position:absolute; filter: drop-shadow(0 6px 10px rgba(44,30,82,0.18)); }
+ .chibi-run{ top: 14px; left: 6%; animation: chibiRun 7s ease-in-out infinite; }
+ .chibi-ball{ top: 40px; left: 46%; animation: chibiHop 2.1s ease-in-out infinite; }
+ .chibi-wave{ top: 10px; right: 5%; animation: chibiSway 3.4s ease-in-out infinite; }
+  @keyframes chibiRun{ 0%{ transform: translateX(0) translateY(0); } 25%{ transform: translateX(14px) translateY(-6px); } 50%{ transform: translateX(30px) translateY(0); } 75%{ transform: translateX(14px) translateY(-6px); } 100%{ transform: translateX(0) translateY(0); } }
+  @keyframes chibiHop{ 0%,100%{ transform: translateY(0) rotate(0deg); } 30%{ transform: translateY(-14px) rotate(-6deg); } 60%{ transform: translateY(0) rotate(4deg); } }
+  @keyframes chibiSway{ 0%,100%{ transform: rotate(0deg) translateY(0); } 50%{ transform: rotate(6deg) translateY(-5px); } }
+  @media (max-width: 720px){ .chibi-run{ display:none; } }
  .view{ display:none; animation: fadeIn.35s ease; }
  .view.active{ display:block; }
   @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
- .panel{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+ .panel{ background: var(--surface); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1.5px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); animation: floatYSlow 7s ease-in-out infinite, glowPulse 5s ease-in-out infinite; }
  .form-panel{ padding: 32px; max-width: 640px; margin: 0 auto; }
- .form-title{ font-family:'Fraunces', serif; font-size: 22px; font-weight:600; margin:0 0 6px; }
+ .form-title{ font-family:'Baloo 2', sans-serif; font-size: 24px; font-weight:700; margin:0 0 6px; background: linear-gradient(90deg, var(--primary), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
  .form-sub{ color: var(--muted); font-size: 14px; margin: 0 0 28px; }
  .field{ margin-bottom: 18px; }
  .field label{ display:block; font-size: 13px; font-weight:600; margin-bottom:6px; color: var(--primary); }
  .field.hint{ font-size:12px; color: var(--muted); margin-top:4px; }
  .row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 560px){.row2{ grid-template-columns: 1fr; } }
-  input[type=text], input[type=password], select{ width:100%; padding: 11px 13px; border-radius:9px; border:1.5px solid var(--border); background:#fbfdff; font-size:14.5px; color: var(--ink); transition: border-color.15s ease; }
-  input:focus, select:focus{ border-color: var(--accent); background:#fff; }
-  select{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235b6b82' stroke-width='1.6' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; }
- .drop{ border: 2px dashed var(--border); border-radius: 12px; padding: 26px; text-align:center; background: #fbfdff; cursor:pointer; transition: border-color.15s ease, background.15s ease; }
- .drop.drag{ border-color: var(--accent); background: #eef6ff; }
- .drop svg{ width:30px; height:30px; margin-bottom:8px; color: var(--primary-light); }
+  input[type=text], input[type=password], select{ width:100%; padding: 11px 13px; border-radius:12px; border:1.5px solid var(--border); background:rgba(255,255,255,0.75); font-size:14.5px; color: var(--ink); transition: border-color.15s ease, box-shadow.15s ease; }
+  input:focus, select:focus{ border-color: var(--accent2); background:#fff; box-shadow: 0 0 0 4px rgba(69, 217, 255, 0.18); }
+  select{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237d6ea3' stroke-width='1.6' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; }
+ .drop{ border: 2px dashed var(--border); border-radius: 16px; padding: 26px; text-align:center; background: rgba(255,255,255,0.55); cursor:pointer; transition: border-color.15s ease, background.15s ease, transform.15s ease; }
+ .drop:hover{ transform: translateY(-2px); }
+ .drop.drag{ border-color: var(--accent); background: #ffeef8; }
+ .drop svg{ width:30px; height:30px; margin-bottom:8px; color: var(--primary-light); animation: floatY 3s ease-in-out infinite; }
  .drop p{ margin:0; font-size:14px; color: var(--muted); }
- .drop.browse{ color: var(--primary-light); font-weight:600; text-decoration: underline; }
- .file-chip{ display:flex; align-items:center; gap:10px; background:#eef6ff; border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-top:10px; font-size:13.5px; }
+ .drop.browse{ color: var(--accent); font-weight:600; text-decoration: underline; }
+ .file-chip{ display:flex; align-items:center; gap:10px; background:#ffeef8; border:1px solid var(--border); border-radius:12px; padding:10px 12px; margin-top:10px; font-size:13.5px; }
  .file-chip.name{ font-family:'IBM Plex Mono', monospace; font-weight:500; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
  .file-chip button{ background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px; font-weight:600; }
  .error-text{ color: var(--danger); font-size:12.5px; margin-top:6px; display:none; }
  .error-text.show{ display:block; }
- .submit-btn{ width:100%; margin-top:8px; background: var(--primary); color:#fff; border:none; padding: 14px; border-radius: 10px; font-size:15px; font-weight:700; cursor:pointer; transition: background.15s ease, transform.1s ease; display:flex; align-items:center; justify-content:center; gap:8px; }
- .submit-btn:hover{ background: var(--primary-light); }
- .submit-btn:disabled{ opacity:0.65; cursor:not-allowed; }
+ .submit-btn{ width:100%; margin-top:8px; background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%); color:#fff; border:none; padding: 14px; border-radius: 14px; font-size:15px; font-weight:700; cursor:pointer; transition: transform.15s ease, box-shadow.15s ease; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: 0 8px 22px rgba(255, 93, 168, 0.35); }
+ .submit-btn:hover{ transform: translateY(-2px); box-shadow: 0 12px 30px rgba(255, 93, 168, 0.45); }
+ .submit-btn:disabled{ opacity:0.65; cursor:not-allowed; transform:none; }
  .spinner{ width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; animation: spin.7s linear infinite; }
   @keyframes spin{ to{ transform: rotate(360deg); } }
  .dash-head{ display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; flex-wrap:wrap; margin-bottom:22px; }
- .dash-head h2{ font-family:'Fraunces', serif; font-size:24px; margin:0 0 4px; }
+ .dash-head h2{ font-family:'Baloo 2', sans-serif; font-size:26px; font-weight:700; margin:0 0 4px; color: var(--primary); }
  .dash-head p{ margin:0; color:var(--muted); font-size:13.5px; }
- .refresh-btn{ background:#fff; border:1.5px solid var(--border); color:var(--primary); padding:9px 15px; border-radius:9px; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; }
- .refresh-btn:hover{ border-color: var(--accent); }
+ .refresh-btn{ background: rgba(255,255,255,0.75); border:1.5px solid var(--border); color:var(--primary); padding:9px 15px; border-radius:12px; font-weight:600; font-size:13.5px; cursor:pointer; display:flex; align-items:center; gap:6px; transition: border-color.15s ease, transform.15s ease; }
+ .refresh-btn:hover{ border-color: var(--accent); transform: translateY(-2px); }
  .refresh-btn svg{ width:14px; height:14px; }
  .refresh-btn.spinning svg{ animation: spin 0.8s linear infinite; }
  .stats{ display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-bottom: 26px; }
   @media (max-width: 720px){.stats{ grid-template-columns: repeat(2,1fr); } }
  .stat{ padding:18px; }
- .stat.num{ font-family:'Fraunces', serif; font-size:28px; font-weight:600; color: var(--primary); }
+ .stat.num{ font-family:'Baloo 2', sans-serif; font-size:30px; font-weight:700; background: linear-gradient(90deg, var(--primary), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
  .stat.lbl{ font-size:12.5px; color:var(--muted); margin-top:2px; }
  .toolbar{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items: center; }
  .toolbar input,.toolbar select{ flex:2; min-width:160px; }
  .backup-actions { display: flex; gap: 8px; flex: 1; min-width: 200px; justify-content: flex-end; }
- .backup-btn { background: #fff; border: 1.5px solid var(--border); color: var(--ink); padding: 11px 14px; border-radius: 9px; font-weight: 600; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
- .backup-btn:hover { border-color: var(--accent); background: #f4f8fd; }
- .sub-card{ padding:18px 20px; margin-bottom:12px; display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:center; }
+ .backup-btn { background: rgba(255,255,255,0.75); border: 1.5px solid var(--border); color: var(--ink); padding: 11px 14px; border-radius: 12px; font-weight: 600; font-size: 13.5px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; transition: border-color.15s ease, transform.15s ease; }
+ .backup-btn:hover { border-color: var(--accent); background: #fff; transform: translateY(-2px); }
+ .sub-card{ padding:18px 20px; margin-bottom:12px; display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:center; animation: none; transition: transform.2s ease, box-shadow.2s ease; }
+ .sub-card:hover{ transform: translateY(-3px); box-shadow: 0 16px 40px rgba(106, 63, 209, 0.2); }
  .sub-card.main-info{ display:flex; flex-direction:column; gap:4px; }
- .sub-card.title{ font-weight:700; font-size:15px; }
+ .sub-card.title{ font-weight:700; font-size:15px; font-family:'Baloo 2', sans-serif; color: var(--ink); }
  .sub-card.meta{ font-size:12.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 10px; }
  .sub-card.meta.id{ font-family:'IBM Plex Mono', monospace; }
- .tag{ display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding: 3px 9px; border-radius: 100px; background: #eaf1fb; color: var(--primary-light); }
+ .tag{ display:inline-block; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; padding: 3px 10px; border-radius: 100px; background: linear-gradient(90deg, rgba(106,63,209,0.14), rgba(255,93,168,0.14)); color: var(--primary); }
  .actions{ display:flex; gap:8px; }
- .actions button{ border:1.5px solid var(--border); background:#fff; color:var(--primary); padding: 8px 13px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; }
- .actions button:hover{ border-color: var(--accent); }
+ .actions button{ border:1.5px solid var(--border); background:rgba(255,255,255,0.8); color:var(--primary); padding: 8px 13px; border-radius:10px; font-size:13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition: border-color.15s ease, transform.15s ease; }
+ .actions button:hover{ border-color: var(--accent); transform: translateY(-2px); }
  .actions.del-btn{ color: var(--danger); }
  .actions.del-btn:hover{ border-color: var(--danger); background: var(--danger-bg); }
  .empty-state{ text-align:center; padding: 56px 20px; color: var(--muted); }
- .empty-state svg{ width:44px; height:44px; margin-bottom:14px; color: var(--border); }
- .empty-state h3{ font-family:'Fraunces', serif; color:var(--ink); margin:0 0 6px; font-size:18px; }
- .skeleton{ height:78px; border-radius:12px; margin-bottom:12px; background: linear-gradient(90deg, #f0f4fa 25%, #e6edf7 37%, #f0f4fa 63%); background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
+ .empty-state svg{ width:44px; height:44px; margin-bottom:14px; color: var(--primary-light); opacity:0.5; animation: floatY 3.5s ease-in-out infinite; }
+ .empty-state h3{ font-family:'Baloo 2', sans-serif; color:var(--ink); margin:0 0 6px; font-size:19px; }
+ .skeleton{ height:78px; border-radius:16px; margin-bottom:12px; background: linear-gradient(90deg, rgba(255,255,255,0.5) 25%, rgba(255,225,243,0.65) 37%, rgba(255,255,255,0.5) 63%); background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
   @keyframes shimmer{ 0%{ background-position: 100% 0;} 100%{ background-position: 0 0; } }
- .overlay{ position:fixed; inset:0; background: rgba(15,30,60,0.45); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition: opacity.2s ease; z-index: 100; }
+ .overlay{ position:fixed; inset:0; background: rgba(44, 30, 82, 0.45); backdrop-filter: blur(3px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition: opacity.2s ease; z-index: 100; }
  .overlay.show{ opacity:1; pointer-events:auto; }
- .modal{ background:#fff; border-radius: 18px; max-width: 420px; width:100%; padding: 34px 30px 28px; text-align:center; box-shadow: var(--shadow-lg); transform: translateY(14px) scale(0.97); transition: transform.25s cubic-bezier(.2,.9,.3,1.3); }
+ .modal{ background: linear-gradient(180deg, #fffdfe 0%, #fff3fa 100%); border-radius: 22px; max-width: 420px; width:100%; padding: 34px 30px 28px; text-align:center; box-shadow: var(--shadow-lg); transform: translateY(14px) scale(0.97); transition: transform.25s cubic-bezier(.2,.9,.3,1.3); border: 1.5px solid var(--border); }
  .overlay.show.modal{ transform: translateY(0) scale(1); }
  .auth-panel { padding: 40px; max-width: 440px; margin: 60px auto; }
- .check-wrap{ width:64px; height:64px; margin:0 auto 18px; border-radius:50%; background: var(--success-bg); display:flex; align-items:center; justify-content:center; }
+ .check-wrap{ width:64px; height:64px; margin:0 auto 18px; border-radius:50%; background: var(--success-bg); display:flex; align-items:center; justify-content:center; animation: floatY 2.4s ease-in-out infinite; box-shadow: 0 0 0 6px rgba(34,185,138,0.12); }
  .check-wrap svg{ width:30px; height:30px; }
  .check-wrap path{ stroke: var(--success); stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray: 40; stroke-dashoffset:40; animation: draw.5s ease.1s forwards; }
   @keyframes draw{ to{ stroke-dashoffset:0; } }
- .modal h3{ font-family:'Fraunces', serif; font-size:20px; margin: 0 0 8px; }
+ .modal h3{ font-family:'Baloo 2', sans-serif; font-size:21px; font-weight:700; margin: 0 0 8px; color: var(--primary); }
  .modal p{ color: var(--muted); font-size:14px; margin: 0 0 18px; line-height:1.5; }
- .modal.sub-id{ font-family:'IBM Plex Mono', monospace; background:#f4f8fd; border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:12.5px; color:var(--primary); margin-bottom:20px; word-break: break-all; }
+ .modal.sub-id{ font-family:'IBM Plex Mono', monospace; background:#f7f0ff; border:1px solid var(--border); border-radius:10px; padding:8px 12px; font-size:12.5px; color:var(--primary); margin-bottom:20px; word-break: break-all; }
  .modal-actions{ display:flex; gap:10px; }
- .modal-actions button{ flex:1; padding:11px; border-radius:9px; font-weight:700; font-size:13.5px; cursor:pointer; }
- .modal-actions.primary{ background: var(--primary); color:#fff; border:none; }
- .modal-actions.primary:hover{ background: var(--primary-light); }
+ .modal-actions button{ flex:1; padding:11px; border-radius:12px; font-weight:700; font-size:13.5px; cursor:pointer; transition: transform.15s ease; }
+ .modal-actions button:hover{ transform: translateY(-2px); }
+ .modal-actions.primary{ background: linear-gradient(90deg, var(--primary), var(--accent)); color:#fff; border:none; }
  .modal-actions.ghost{ background:#fff; border:1.5px solid var(--border); color: var(--ink); }
- .toast{ position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--ink); color:#fff; padding: 12px 20px; border-radius: 10px; font-size:13.5px; box-shadow: var(--shadow-lg); opacity:0; pointer-events:none; transition: all.25s ease; z-index: 200; }
+ .toast{ position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: linear-gradient(90deg, var(--primary), #4d2fa0); color:#fff; padding: 12px 22px; border-radius: 14px; font-size:13.5px; box-shadow: var(--shadow-lg); opacity:0; pointer-events:none; transition: all.25s ease; z-index: 200; }
  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
- .storage-banner{ display:flex; align-items:center; gap:10px; background:#eef6ff; border:1px solid var(--border); border-radius:10px; padding:10px 14px; font-size:12.5px; color: var(--primary); margin-bottom:18px; }
+ .storage-banner{ display:flex; align-items:center; gap:10px; background: rgba(255,255,255,0.6); border:1px solid var(--border); border-radius:12px; padding:10px 14px; font-size:12.5px; color: var(--primary); margin-bottom:18px; }
  .storage-banner svg{ width:16px; height:16px; flex-shrink:0; }
-  footer{ text-align:center; padding: 26px 24px 40px; color: var(--muted); font-size:12.5px; }
+  footer{ text-align:center; padding: 26px 24px 40px; color: var(--muted); font-size:12.5px; position: relative; z-index:1; }
+
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
+  }
 </style>
 </head>
 <body>
@@ -141,9 +200,50 @@
       <path d="M-10 150 Q40 100 90 140 T190 120"/><path d="M-10 165 Q40 118 90 158 T190 138"/><path d="M-10 180 Q40 136 90 176 T190 156"/><path d="M-10 195 Q40 154 90 194 T190 174"/><path d="M-10 130 Q40 82 90 122 T190 102"/>
     </svg>
   </div>
+  <div class="chibi-layer" aria-hidden="true">
+    <svg class="chibi chibi-run" viewBox="0 0 60 70" width="46" height="54">
+      <ellipse cx="30" cy="66" rx="14" ry="3" fill="#000" opacity="0.08"/>
+      <path d="M18 44 Q14 56 8 62" stroke="#ffcf5c" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M40 44 Q46 54 52 50" stroke="#ffcf5c" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M27 44 L24 62" stroke="#6a3fd1" stroke-width="6" stroke-linecap="round"/>
+      <path d="M33 44 L40 60" stroke="#6a3fd1" stroke-width="6" stroke-linecap="round"/>
+      <rect x="18" y="28" width="24" height="20" rx="9" fill="#ff5da8"/>
+      <circle cx="30" cy="16" r="13" fill="#ffe1cc"/>
+      <path d="M17 14 Q19 2 30 2 Q42 2 43 14 Q34 8 30 10 Q26 8 17 14Z" fill="#4a3320"/>
+      <circle cx="25" cy="17" r="1.6" fill="#2c1e52"/>
+      <circle cx="35" cy="17" r="1.6" fill="#2c1e52"/>
+      <path d="M26 22 Q30 25 34 22" stroke="#2c1e52" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    </svg>
+    <svg class="chibi chibi-ball" viewBox="0 0 60 70" width="42" height="50">
+      <ellipse cx="30" cy="66" rx="14" ry="3" fill="#000" opacity="0.08"/>
+      <circle cx="46" cy="58" r="6" fill="#45d9ff" stroke="#fff" stroke-width="1.5"/>
+      <path d="M20 44 L12 40" stroke="#22b98a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M38 44 L44 38" stroke="#22b98a" stroke-width="5" stroke-linecap="round"/>
+      <path d="M26 44 L20 60" stroke="#6a3fd1" stroke-width="6" stroke-linecap="round"/>
+      <path d="M32 44 Q40 50 44 56" stroke="#6a3fd1" stroke-width="6" stroke-linecap="round"/>
+      <rect x="16" y="28" width="26" height="20" rx="9" fill="#45d9ff"/>
+      <circle cx="29" cy="16" r="13" fill="#ffe1cc"/>
+      <path d="M16 15 Q17 2 29 2 Q41 3 42 16 Q33 9 29 10 Q24 9 16 15Z" fill="#2c1e52"/>
+      <circle cx="24" cy="17" r="1.6" fill="#2c1e52"/>
+      <circle cx="34" cy="17" r="1.6" fill="#2c1e52"/>
+      <path d="M25 22 Q29 25 33 22" stroke="#2c1e52" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    </svg>
+    <svg class="chibi chibi-wave" viewBox="0 0 60 70" width="42" height="50">
+      <ellipse cx="30" cy="66" rx="14" ry="3" fill="#000" opacity="0.08"/>
+      <path d="M40 34 Q50 24 48 16" stroke="#ffcf5c" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M20 44 L22 62" stroke="#6a3fd1" stroke-width="6" stroke-linecap="round"/>
+      <path d="M28 44 L26 62" stroke="#6a3fd1" stroke-width="6" stroke-linecap="round"/>
+      <rect x="16" y="28" width="24" height="20" rx="9" fill="#ffcf5c"/>
+      <circle cx="27" cy="16" r="13" fill="#ffe1cc"/>
+      <path d="M15 12 Q22 0 32 4 Q40 6 39 16 Q30 8 27 10 Q22 8 15 12Z" fill="#7a4bdc"/>
+      <circle cx="23" cy="17" r="1.6" fill="#2c1e52"/>
+      <circle cx="32" cy="17" r="1.6" fill="#2c1e52"/>
+      <path d="M23 22 Q27 25 31 22" stroke="#2c1e52" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+    </svg>
+  </div>
   <div class="top-inner">
     <div class="brand">
-      <div class="crest"><svg viewBox="0 0 24 24" fill="none"><path d="M3 20 L8 10 L12 16 L16 6 L21 20 Z" stroke="#163a6e" stroke-width="1.6" stroke-linejoin="round" fill="#dceafd"/></svg></div>
+      <div class="crest"><svg viewBox="0 0 24 24" fill="none"><path d="M3 20 L8 10 L12 16 L16 6 L21 20 Z" stroke="#6a3fd1" stroke-width="1.6" stroke-linejoin="round" fill="#ffe1f3"/></svg></div>
       <div class="brand-text"><div class="eyebrow">Dooars Academy of Technology</div><h1>Project Submission Portal</h1></div>
     </div>
   </div>
@@ -222,7 +322,7 @@
   function handlePdfAction(record, actionType) { if(record.driveFileUrl){ if(actionType === 'view'){ window.open(record.driveFileUrl, '_blank'); } else { window.open(record.driveDownloadUrl || record.driveFileUrl, '_blank'); } return; } if(!record.fileBase64){ showToast('This submission has no file copy.'); return; } try { const byteCharacters = atob(record.fileBase64); const byteNumbers = new Array(byteCharacters.length); for (let i = 0; i < byteCharacters.length; i++) { byteNumbers[i] = byteCharacters.charCodeAt(i); } const byteArray = new Uint8Array(byteNumbers); const blob = new Blob([byteArray], { type: 'application/pdf' }); const blobUrl = URL.createObjectURL(blob); if (actionType === 'view') { window.open(blobUrl, '_blank'); } else { const dlAnchor = document.createElement('a'); dlAnchor.href = blobUrl; dlAnchor.download = record.fileName; document.body.appendChild(dlAnchor); dlAnchor.click(); dlAnchor.remove(); } setTimeout(() => URL.revokeObjectURL(blobUrl), 10000); } catch(err) { showToast("Unable to decode PDF."); } }
 
   const form = document.getElementById('submitForm'); const submitBtn = document.getElementById('submitBtn');
-  form.addEventListener('submit', async (e) => { e.preventDefault(); if(!form.checkValidity()){ form.reportValidity(); return; } if(!selectedFile){ fileError.textContent = 'Please attach your project report as a PDF.'; fileError.classList.add('show'); return; } submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spinner"></span> Submitting…'; try { const base64 = await fileToBase64(selectedFile); const id = (crypto.randomUUID? crypto.randomUUID() : 'sub-' + Date.now() + '-' + Math.random().toString(16).slice(2)).slice(0, 8); const record = { id, name: document.getElementById('stuName').value.trim(), roll: document.getElementById('stuRoll').value.trim(), department: document.getElementById('stuDept').value, semester: document.getElementById('stuSem').value, title: document.getElementById('projTitle').value.trim(), guide: document.getElementById('guideName').value.trim, guide: document.getElementById('guideName').value.trim(),
+  form.addEventListener('submit', async (e) => { e.preventDefault(); if(!form.checkValidity()){ form.reportValidity(); return; } if(!selectedFile){ fileError.textContent = 'Please attach your project report as a PDF.'; fileError.classList.add('show'); return; } submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spinner"></span> Submitting…'; try { const base64 = await fileToBase64(selectedFile); const id = (crypto.randomUUID? crypto.randomUUID() : 'sub-' + Date.now() + '-' + Math.random().toString(16).slice(2)).slice(0, 8); const record = { id, name: document.getElementById('stuName').value.trim(), roll: document.getElementById('stuRoll').value.trim(), department: document.getElementById('stuDept').value, semester: document.getElementById('stuSem').value, title: document.getElementById('projTitle').value.trim(), guide: document.getElementById('guideName').value.trim(),
         fileName: selectedFile.name,
         fileSize: selectedFile.size,
         fileBase64: base64,
