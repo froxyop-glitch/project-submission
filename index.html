@@ -222,4 +222,215 @@
   function handlePdfAction(record, actionType) { if(record.driveFileUrl){ if(actionType === 'view'){ window.open(record.driveFileUrl, '_blank'); } else { window.open(record.driveDownloadUrl || record.driveFileUrl, '_blank'); } return; } if(!record.fileBase64){ showToast('This submission has no file copy.'); return; } try { const byteCharacters = atob(record.fileBase64); const byteNumbers = new Array(byteCharacters.length); for (let i = 0; i < byteCharacters.length; i++) { byteNumbers[i] = byteCharacters.charCodeAt(i); } const byteArray = new Uint8Array(byteNumbers); const blob = new Blob([byteArray], { type: 'application/pdf' }); const blobUrl = URL.createObjectURL(blob); if (actionType === 'view') { window.open(blobUrl, '_blank'); } else { const dlAnchor = document.createElement('a'); dlAnchor.href = blobUrl; dlAnchor.download = record.fileName; document.body.appendChild(dlAnchor); dlAnchor.click(); dlAnchor.remove(); } setTimeout(() => URL.revokeObjectURL(blobUrl), 10000); } catch(err) { showToast("Unable to decode PDF."); } }
 
   const form = document.getElementById('submitForm'); const submitBtn = document.getElementById('submitBtn');
-  form.addEventListener('submit', async (e) => { e.preventDefault(); if(!form.checkValidity()){ form.reportValidity(); return; } if(!selectedFile){ fileError.textContent = 'Please attach your project report as a PDF.'; fileError.classList.add('show'); return; } submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spinner"></span> Submitting…'; try { const base64 = await fileToBase64(selectedFile); const id = (crypto.randomUUID? crypto.randomUUID() : 'sub-' + Date.now() + '-' + Math.random().toString(16).slice(2)).slice(0, 8); const record = { id, name: document.getElementById('stuName').value.trim(), roll: document.getElementById('stuRoll').value.trim(), department: document.getElementById('stuDept').value, semester: document.getElementById('stuSem').value, title: document.getElementById('projTitle').value.trim(), guide: document.getElementById('guideName').value.trim
+  form.addEventListener('submit', async (e) => { e.preventDefault(); if(!form.checkValidity()){ form.reportValidity(); return; } if(!selectedFile){ fileError.textContent = 'Please attach your project report as a PDF.'; fileError.classList.add('show'); return; } submitBtn.disabled = true; submitBtn.innerHTML = '<span class="spinner"></span> Submitting…'; try { const base64 = await fileToBase64(selectedFile); const id = (crypto.randomUUID? crypto.randomUUID() : 'sub-' + Date.now() + '-' + Math.random().toString(16).slice(2)).slice(0, 8); const record = { id, name: document.getElementById('stuName').value.trim(), roll: document.getElementById('stuRoll').value.trim(), department: document.getElementById('stuDept').value, semester: document.getElementById('stuSem').value, title: document.getElementById('projTitle').value.trim(), guide: document.getElementById('guideName').value.trim, guide: document.getElementById('guideName').value.trim(),
+        fileName: selectedFile.name,
+        fileSize: selectedFile.size,
+        fileBase64: base64,
+        submittedAt: new Date().toISOString()
+      };
+
+      const driveResult = await uploadToDrive(record);
+      if(driveResult && driveResult.success){
+        record.driveFileId = driveResult.fileId;
+        record.driveFileUrl = driveResult.fileUrl;
+        record.driveDownloadUrl = driveResult.downloadUrl || driveResult.fileUrl;
+        delete record.fileBase64;
+      }
+
+      backupCache.push(record);
+      try { localStorage.setItem('sub_item:' + id, JSON.stringify(record)); } catch(e){}
+      await saveToIDB(record);
+
+      document.getElementById('modalSubId').textContent = 'Submission ID: ' + id;
+      document.getElementById('modalMsg').textContent = driveResult && driveResult.success
+       ? '"' + record.title + '" has been saved to Google Drive successfully.'
+        : '"' + record.title + '" has been captured locally.';
+      document.getElementById('successOverlay').classList.add('show');
+
+      form.reset();
+      selectedFile = null;
+      fileChip.style.display = 'none';
+      dropZone.style.display = 'block';
+
+    } catch(err){
+      showToast('Something went wrong while submitting. Please try again.');
+      console.error(err);
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Submit project';
+    }
+  });
+
+  document.getElementById('modalAnother').addEventListener('click', () => {
+    document.getElementById('successOverlay').classList.remove('show');
+  });
+  document.getElementById('modalDashboard').addEventListener('click', () => {
+    document.getElementById('successOverlay').classList.remove('show');
+    switchView('dashboard');
+  });
+
+  const listContainer = document.getElementById('listContainer');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const searchInput = document.getElementById('searchInput');
+  const deptFilter = document.getElementById('deptFilter');
+
+  refreshBtn.addEventListener('click', () => loadSubmissions());
+  searchInput.addEventListener('input', renderList);
+  deptFilter.addEventListener('change', renderList);
+
+  async function loadSubmissions(){
+    refreshBtn.classList.add('spinning');
+    listContainer.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
+
+    const banner = document.getElementById('storageBannerText');
+    banner.textContent = driveConfigured()
+     ? 'Showing submissions synced from Google Drive via Google Sheets backend.'
+      : 'Google Drive isn\'t configured yet. Falling back to local storage.';
+
+    const unifiedMap = new Map();
+    backupCache.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
+
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('sub_item:')) {
+          const raw = localStorage.getItem(k);
+          if (raw) { const parsed = JSON.parse(raw); if(parsed && parsed.id) unifiedMap.set(parsed.id, parsed); }
+        }
+      }
+    } catch(e){}
+
+    const dbItems = await getAllFromIDB();
+    dbItems.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
+
+    const driveRecords = await fetchFromDrive();
+    driveRecords.forEach(r => { if(r && r.id) unifiedMap.set(r.id, r); });
+
+    allSubmissions = Array.from(unifiedMap.values());
+    backupCache = [...allSubmissions];
+
+    refreshBtn.classList.remove('spinning');
+    populateDeptFilter();
+    renderStats();
+    renderList();
+  }
+
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importFile = document.getElementById('importFile');
+
+  exportBtn.addEventListener('click', () => {
+    if (allSubmissions.length === 0) { showToast("No submissions to export."); return; }
+    try {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allSubmissions));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", "DAT_Submissions_Backup_" + new Date().toISOString().slice(0,10) + ".json");
+      document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+      showToast("Backup downloaded successfully.");
+    } catch(err) { showToast("Could not generate export file."); }
+  });
+
+  importBtn.addEventListener('click', () => importFile.click());
+  importFile.addEventListener('change', (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const parsedList = JSON.parse(event.target.result);
+        if (!Array.isArray(parsedList)) { showToast("Invalid file structure."); return; }
+        let counter = 0;
+        for (const record of parsedList) {
+          if (record && record.id && record.title) {
+            if (!backupCache.some(existing => existing.id === record.id)) {
+              backupCache.push(record);
+              try { localStorage.setItem('sub_item:' + record.id, JSON.stringify(record)); } catch(e){}
+              await saveToIDB(record);
+              counter++;
+            }
+          }
+        }
+        showToast(`Imported ${counter} records.`);
+        loadSubmissions();
+      } catch(err) { showToast("Error processing file."); }
+    };
+    reader.readAsText(file); importFile.value = '';
+  });
+
+  function populateDeptFilter(){
+    const current = deptFilter.value;
+    const depts = [...new Set(allSubmissions.map(r => r.department))].sort();
+    deptFilter.innerHTML = '<option value="">All departments</option>' + depts.map(d => `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`).join('');
+    if(!deptFilterInitialized){
+      deptFilter.value = depts.includes(BCA_DEPT)? BCA_DEPT : current;
+      deptFilterInitialized = true;
+    } else { deptFilter.value = current; }
+  }
+
+  function renderStats(){
+    document.getElementById('statTotal').textContent = allSubmissions.length;
+    const todayStr = new Date().toDateString();
+    const todayCount = allSubmissions.filter(r => new Date(r.submittedAt).toDateString() === todayStr).length;
+    document.getElementById('statToday').textContent = todayCount;
+    document.getElementById('statDepts').textContent = new Set(allSubmissions.map(r => r.department)).size;
+    const totalBytes = allSubmissions.reduce((sum, r) => sum + (r.fileSize || 0), 0);
+    document.getElementById('statSize').textContent = (totalBytes/(1024*1024)).toFixed(1) + ' MB';
+  }
+
+  function renderList(){
+    const q = searchInput.value.trim().toLowerCase();
+    const dept = deptFilter.value;
+    let filtered = allSubmissions.filter(r => {
+      const matchesQ =!q || r.name.toLowerCase().includes(q) || r.roll.toLowerCase().includes(q) || r.title.toLowerCase().includes(q);
+      const matchesDept =!dept || r.department === dept;
+      return matchesQ && matchesDept;
+    });
+    filtered.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+    if(filtered.length === 0){
+      listContainer.innerHTML = `<div class="panel empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12h6M9 16h6M9 8h6M5 4h10l4 4v12a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z" stroke-linecap="round" stroke-linejoin="round"/></svg><h3>${allSubmissions.length === 0? 'No submissions yet' : 'No matches found'}</h3><p>${allSubmissions.length === 0? 'The first project submitted will appear here.' : 'Try a different search term or department.'}</p></div>`;
+      return;
+    }
+
+    listContainer.innerHTML = filtered.map(r => {
+      const date = new Date(r.submittedAt);
+      const dateStr = date.toLocaleDateString(undefined, { day:'2-digit', month:'short', year:'numeric' }) + ' · ' + date.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+      return `
+        <div class="panel sub-card" data-id="${r.id}">
+          <div class="main-info">
+            <span class="tag">${escapeHtml(r.department)}</span>
+            <span class="title">${escapeHtml(r.title)}</span>
+            <span class="meta"><span>${escapeHtml(r.name)} · ${escapeHtml(r.roll)}</span><span>Sem ${escapeHtml(r.semester)}</span><span>Guide: ${escapeHtml(r.guide)}</span></span>
+            <span class="meta"><span class="id">${r.id}</span><span>${dateStr}</span><span>${formatBytes(r.fileSize || 0)}</span>${r.driveFileUrl? '<span>☁️ Drive</span>' : ''}</span>
+          </div>
+          <div class="actions">
+            <button class="view-pdf-btn" data-viewid="${r.id}">View PDF</button>
+            <button class="dl-pdf-btn" data-dlid="${r.id}">Download</button>
+            <button class="del-btn" data-del="${r.id}">Delete</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    listContainer.querySelectorAll('.view-pdf-btn').forEach(btn => { btn.addEventListener('click', () => { const entry = allSubmissions.find(r => r.id === btn.dataset.viewid); if(entry) handlePdfAction(entry, 'view'); }); });
+    listContainer.querySelectorAll('.dl-pdf-btn').forEach(btn => { btn.addEventListener('click', () => { const entry = allSubmissions.find(r => r.id === btn.dataset.dlid); if(entry) handlePdfAction(entry, 'download'); }); });
+    listContainer.querySelectorAll('[data-del]').forEach(btn => { btn.addEventListener('click', () => deleteSubmission(btn.dataset.del)); });
+  }
+
+  async function deleteSubmission(id){
+    if(!confirm('Delete this submission? This cannot be undone.')) return;
+    backupCache = backupCache.filter(r => r.id!== id);
+    try { localStorage.removeItem('sub_item:' + id); } catch(e){}
+    await deleteFromIDB(id);
+    await deleteFromDrive(id);
+    allSubmissions = allSubmissions.filter(r => r.id!== id);
+    renderStats(); renderList(); showToast('Submission deleted.');
+  }
+
+  function escapeHtml(str){ return String(str || '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  async function boot() { await initDB(); await loadSubmissions(); }
+  boot();
+})();
+</script>
+</body>
+</html>
