@@ -7,361 +7,183 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Bebas+Neue&family=Poppins:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg-base: #0c0d12;
-    --surface: rgba(20, 22, 30, 0.6);
-    --surface-hover: rgba(30, 34, 46, 0.75);
-    --ink: #e2e8f0;
-    --muted: #8892b0;
-    
-    /* Shinobi Theme Colors */
-    --shinobi-red: #b91c1c;
-    --shinobi-blue: #1e3a8a;
-    --accent: #a78bfa;
-    --border: rgba(255, 255, 255, 0.08);
-    --border-focus: rgba(167, 139, 250, 0.5);
-    
-    --success: #10b981;
-    --success-bg: rgba(16, 185, 129, 0.1);
-    --danger: #ef4444;
-    --danger-bg: rgba(239, 68, 68, 0.1);
-    
-    --radius: 16px;
-    --shadow: 0 20px 40px rgba(0, 0, 0, 0.7);
+  :root{
+    --paper: #f4f0e6;
+    --surface: #fffdf8;
+    --ink: #16151c;
+    --navy: #0e1c3f;
+    --navy-deep: #060d24;
+    --maroon: #7a1030;
+    --maroon-light: #9c1c3f;
+    --gold: #c9a227;
+    --gold-light: #e7c869;
+    --muted: #5b5568;
+    --border: #16151c;
+    --border-soft: rgba(22,21,28,0.14);
+    --success: #1f7a4d;
+    --success-bg: #e6f3ec;
+    --danger: #8a1c2b;
+    --danger-bg: #fbe9ea;
+    --radius: 6px;
+    --shadow: 5px 5px 0 rgba(16,15,20,0.9);
+    --shadow-sm: 3px 3px 0 rgba(16,15,20,0.9);
+    --shadow-lg: 10px 10px 0 rgba(16,15,20,0.92);
   }
-
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  
-  body {
-    margin: 0; 
-    font-family: 'Poppins', sans-serif; 
-    color: var(--ink); 
-    -webkit-font-smoothing: antialiased;
-    background-color: var(--bg-base);
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0; font-family:'Poppins', sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased;
+    background:
+      radial-gradient(circle, rgba(22,21,28,0.07) 1px, transparent 1.2px) 0 0/14px 14px,
+      var(--paper);
     min-height: 100vh;
     position: relative;
     overflow-x: hidden;
-    z-index: 0;
   }
+  ::selection{ background: var(--gold); color: var(--navy-deep); }
+  a{ color: inherit; }
+  button{ font-family: inherit; }
+  :focus-visible{ outline: 3px solid var(--gold); outline-offset: 2px; }
 
-  /* --- Floating Background Objects --- */
-  .floating-container {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: -1;
-    overflow: hidden;
+ .contour-bg{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+ .contour-bg svg{ position:absolute; top:-25%; right:-12%; width:680px; height:680px; opacity:0.10; }
+  header.top{
+    position: relative; overflow: hidden; color: #fff;
+    background:
+      repeating-linear-gradient(115deg, rgba(255,255,255,0.05) 0 2px, transparent 2px 46px),
+      linear-gradient(120deg, var(--navy-deep) 0%, var(--navy) 55%, #16224a 100%);
+    border-bottom: 5px solid var(--gold);
   }
-  .float-object {
-    position: absolute;
-    background: linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(4px);
-    border-radius: 35% 65% 70% 30% / 50% 40% 60% 50%;
-    animation: floatAround 25s infinite linear alternate;
+  header.top::before{
+    content:""; position:absolute; inset:0; pointer-events:none; opacity:0.5;
+    background: repeating-linear-gradient(90deg, transparent 0 3px, rgba(255,255,255,0.035) 3px 4px);
   }
-  .obj-1 { width: 300px; height: 300px; top: 10%; left: -5%; animation-duration: 30s; }
-  .obj-2 { width: 400px; height: 400px; bottom: 5%; right: -10%; animation-duration: 40s; border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
-  .obj-3 { width: 200px; height: 200px; top: 60%; left: 15%; animation-duration: 25s; }
-
-  @keyframes floatAround {
-    0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-    50% { border-radius: 40% 60% 50% 50% / 40% 50% 60% 50%; }
-    100% { transform: translate(60px, 40px) rotate(180deg) scale(1.1); }
+  header.top::after{
+    content:""; position:absolute; top:-40%; right:-6%; width:520px; height:520px; pointer-events:none;
+    background: repeating-conic-gradient(from 0deg, rgba(201,162,39,0.16) 0deg 2deg, transparent 2deg 12deg);
+    border-radius:50%;
   }
-
-  ::selection { background: var(--shinobi-red); color: #fff; }
-  a { color: inherit; }
-  button { font-family: inherit; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-
-  /* Header Styling */
-  header.top {
-    position: relative; 
-    color: #fff;
-    background: rgba(12, 13, 18, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-  }
- .top-inner { position: relative; max-width: 1100px; margin: 0 auto; padding: 30px 24px 0; display:flex; align-items:center; justify-content: space-between; gap: 20px; flex-wrap: wrap; z-index:1; }
- .brand { display:flex; align-items:center; gap:18px; }
- 
- /* Jiraiya & Madara Split Crest Icon */
- .crest { 
-    width: 64px; height: 64px; 
-    border-radius: 14px; 
-    background: #161824; 
-    display:flex; align-items:center; justify-content:center; 
-    border: 1.5px solid rgba(255, 255, 255, 0.15);
-    flex-shrink:0; 
-    overflow: hidden;
-    position: relative;
- }
- .crest::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, rgba(185,28,28,0.15) 50%, rgba(30,58,138,0.2) 50%);
- }
- .crest svg { width:54px; height:54px; z-index: 1; position: relative; }
-
- .brand-text.eyebrow { font-family:'Bebas Neue', sans-serif; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
- .brand-text h1 { font-family:'Cinzel', serif; font-weight: 700; font-size: clamp(20px, 3vw, 27px); margin: 2px 0 0; letter-spacing: 0.015em; color: #fff; }
-  
-  /* Tabs */
-  nav.tabs { display:flex; gap:8px; position: relative; max-width: 1100px; margin: 24px auto 0; padding: 0 24px; z-index:1; }
-  nav.tabs button { background:none; border:none; color: var(--muted); padding: 12px 20px; font-family:'Bebas Neue', sans-serif; font-size: 18px; letter-spacing:0.06em; cursor:pointer; border-bottom: 2px solid transparent; transition: all 0.3s ease; }
-  nav.tabs button:hover { color:#fff; }
-  nav.tabs button.active { color: var(--accent); border-color: var(--accent); background: rgba(167, 139, 250, 0.05); }
-  
-  main { max-width: 1100px; margin: 0 auto; padding: 44px 24px 80px; position: relative; z-index:1; }
- .view { display:none; animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; opacity: 0; transform: translateY(15px); }
- .view.active { display:block; }
-  @keyframes slideUp { to { opacity:1; transform:none; } }
-
-  /* Glassmorphism Panels */
- .panel { 
-    background: var(--surface); 
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border); 
-    border-radius: var(--radius); 
-    box-shadow: var(--shadow); 
- }
- .form-panel { padding: 40px; max-width: 640px; margin: 0 auto; position:relative; }
- .form-panel::before { 
-    content:"SHINOBI ARCHIVE"; position:absolute; top:-12px; left:28px; 
-    background: #1e293b; color: var(--muted); font-family:'Bebas Neue', sans-serif; font-size:12px; letter-spacing:0.12em; 
-    padding: 3px 14px; border-radius: 6px; border: 1px solid var(--border);
- }
- .form-title { font-family:'Cinzel', serif; font-size: 24px; font-weight:700; margin:0 0 8px; color: #fff; }
- .form-sub { color: var(--muted); font-size: 14px; margin: 0 0 32px; line-height: 1.6; }
- 
- .field { margin-bottom: 22px; }
- .field label { display:block; font-size: 12.5px; font-weight:600; margin-bottom:8px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
- .row2 { display:grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+ .top-inner{ position: relative; max-width: 1100px; margin: 0 auto; padding: 30px 24px 0; display:flex; align-items:center; justify-content: space-between; gap: 20px; flex-wrap: wrap; z-index:1; }
+ .brand{ display:flex; align-items:center; gap:16px; }
+ .crest{ width:56px; height:56px; border-radius: 50%; background: radial-gradient(circle at 32% 26%, #2a3968, var(--navy-deep) 70%); display:flex; align-items:center; justify-content:center; box-shadow: 0 0 0 2px var(--gold), 0 0 0 5px rgba(201,162,39,0.25), var(--shadow-sm); flex-shrink:0; }
+ .crest svg{ width:32px; height:32px; }
+ .brand-text.eyebrow{ font-family:'Bebas Neue', sans-serif; font-size: 13px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-light); }
+ .brand-text h1{ font-family:'Cinzel', serif; font-weight: 700; font-size: clamp(21px, 3vw, 29px); margin: 3px 0 0; letter-spacing: 0.015em; text-shadow: 2px 2px 0 rgba(0,0,0,0.35); }
+  nav.tabs{ display:flex; gap:2px; position: relative; max-width: 1100px; margin: 24px auto 0; padding: 0 24px; z-index:1; }
+  nav.tabs button{ background:none; border:none; color: #c7d0e8; padding: 12px 20px; font-family:'Bebas Neue', sans-serif; font-size: 16.5px; letter-spacing:0.05em; cursor:pointer; border-bottom: 3px solid transparent; transition: color.18s ease, border-color.18s ease, background.18s ease; }
+  nav.tabs button:hover{ color:#fff; background: rgba(255,255,255,0.06); }
+  nav.tabs button.active{ color:#fff; border-color: var(--gold); background: rgba(201,162,39,0.10); }
+  main{ max-width: 1100px; margin: 0 auto; padding: 44px 24px 80px; position: relative; z-index:1; }
+ .view{ display:none; animation: fadeIn.3s ease; }
+ .view.active{ display:block; }
+  @keyframes fadeIn{ from{ opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
+ .panel{ background: var(--surface); border: 2px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+ .form-panel{ padding: 34px; max-width: 640px; margin: 0 auto; position:relative; }
+ .form-panel::before{ content:"PROJECT FILE"; position:absolute; top:-13px; left:28px; background: var(--gold); color: var(--navy-deep); font-family:'Bebas Neue', sans-serif; font-size:12px; letter-spacing:0.14em; padding: 3px 12px; border: 2px solid var(--border); border-radius:3px; }
+ .form-title{ font-family:'Cinzel', serif; font-size: 23px; font-weight:700; margin:0 0 6px; color: var(--navy-deep); }
+ .form-sub{ color: var(--muted); font-size: 14px; margin: 0 0 28px; }
+ .field{ margin-bottom: 18px; }
+ .field label{ display:block; font-size: 12.5px; font-weight:700; margin-bottom:6px; color: var(--maroon); text-transform: uppercase; letter-spacing: 0.05em; }
+ .field.hint{ font-size:12px; color: var(--muted); margin-top:4px; }
+ .row2{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   @media (max-width: 560px){.row2{ grid-template-columns: 1fr; } }
-  
-  /* Inputs */
-  input[type=text], input[type=password], select { 
-    width:100%; padding: 14px 16px; border-radius: 10px; 
-    border: 1px solid var(--border); 
-    background: rgba(10, 11, 16, 0.5); 
-    font-size: 15px; color: #fff; 
-    transition: all 0.3s ease; 
-  }
-  input::placeholder { color: rgba(255, 255, 255, 0.25); }
-  input:focus, select:focus { 
-    border-color: var(--border-focus); 
-    background: rgba(10, 11, 16, 0.8);
-    box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15); 
-  }
-  select { 
-    appearance:none; 
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238892b0' stroke-width='1.8' fill='none'/%3E%3C/svg%3E"); 
-    background-repeat:no-repeat; background-position: right 16px center; 
-  }
-  select option { background: #12131a; color: #fff; }
-
-  /* Drag & Drop */
- .drop { 
-    border: 2px dashed rgba(255,255,255,0.15); 
-    border-radius: var(--radius); padding: 35px; text-align:center; 
-    background: rgba(0,0,0,0.15); cursor:pointer; transition: all 0.3s ease; 
-  }
- .drop:hover { border-color: var(--accent); background: rgba(167, 139, 250, 0.02); }
- .drop.drag { border-color: var(--success); background: rgba(16, 185, 129, 0.05); border-style: solid; }
- .drop svg { width:36px; height:36px; margin-bottom:12px; color: var(--muted); }
- .drop p { margin:0; font-size:14.5px; color: var(--muted); }
- .drop .browse { color: var(--accent); font-weight:600; text-decoration: underline; text-underline-offset: 4px; }
- 
- .file-chip { display:flex; align-items:center; gap:10px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); border-radius: 8px; padding:12px 16px; margin-top:12px; font-size:14px; }
- .file-chip .name { font-family:'IBM Plex Mono', monospace; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color: var(--accent); }
- .file-chip button { background:none; border:none; color: var(--danger); cursor:pointer; font-weight:600; }
- .error-text { color: var(--danger); font-size:13px; margin-top:8px; display:none; }
- .error-text.show { display:block; }
- 
- /* Buttons */
- .submit-btn { 
-    width:100%; margin-top:16px; 
-    background: #1e293b; 
-    color:#fff; border: 1px solid rgba(255,255,255,0.15); padding: 16px; border-radius: 10px; 
-    font-family:'Bebas Neue', sans-serif; font-size:19px; letter-spacing:0.08em; 
-    cursor:pointer; transition: all 0.2s ease; 
-    display:flex; align-items:center; justify-content:center; gap:10px; 
- }
- .submit-btn:hover { background: #2d3748; border-color: var(--accent); transform: translateY(-1px); }
- .submit-btn:active { transform: translateY(1px); }
- .submit-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
- 
- .spinner { width:18px; height:18px; border-radius:50%; border:3px solid rgba(255,255,255,0.2); border-top-color:#fff; animation: spin 0.8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
- 
- /* Dashboard */
- .dash-head { display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; flex-wrap:wrap; margin-bottom:28px; }
- .dash-head h2 { font-family:'Cinzel', serif; font-size:26px; font-weight:700; margin:0 0 6px; color: #fff; }
- .dash-head p { margin:0; color:var(--muted); font-size:14px; }
- 
- .refresh-btn { 
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border); 
-    color: #fff; padding:10px 18px; border-radius:8px; 
-    font-family:'Bebas Neue', sans-serif; font-size:15px; letter-spacing:0.06em; 
-    cursor:pointer; display:flex; align-items:center; gap:8px; transition: all 0.2s;
- }
- .refresh-btn:hover { background: rgba(255,255,255,0.08); border-color: var(--accent); }
- .refresh-btn svg { width:16px; height:16px; }
- .refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
- 
- .stats { display:grid; grid-template-columns: repeat(4, 1fr); gap:16px; margin-bottom: 30px; }
+  input[type=text], input[type=password], select{ width:100%; padding: 11px 13px; border-radius:4px; border:2px solid var(--border); background:#fff; font-size:14.5px; color: var(--ink); transition: border-color.15s ease, box-shadow.15s ease; }
+  input:focus, select:focus{ border-color: var(--maroon); box-shadow: 3px 3px 0 rgba(122,16,48,0.25); }
+  select{ appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2316151c' stroke-width='1.8' fill='none'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position: right 14px center; }
+ .drop{ border: 2px dashed var(--border); border-radius: 6px; padding: 26px; text-align:center; background: #faf7ef; cursor:pointer; transition: border-color.15s ease, background.15s ease; }
+ .drop.drag{ border-color: var(--maroon); background: #fbeef1; border-style: solid; }
+ .drop svg{ width:30px; height:30px; margin-bottom:8px; color: var(--maroon); }
+ .drop p{ margin:0; font-size:14px; color: var(--muted); }
+ .drop.browse{ color: var(--maroon); font-weight:700; text-decoration: underline; }
+ .file-chip{ display:flex; align-items:center; gap:10px; background:#faf7ef; border:2px solid var(--border); border-radius:5px; padding:10px 12px; margin-top:10px; font-size:13.5px; }
+ .file-chip.name{ font-family:'IBM Plex Mono', monospace; font-weight:500; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+ .file-chip button{ background:none; border:none; color:var(--danger); cursor:pointer; font-size:13px; font-weight:700; }
+ .error-text{ color: var(--danger); font-size:12.5px; margin-top:6px; display:none; }
+ .error-text.show{ display:block; }
+ .submit-btn{ width:100%; margin-top:8px; background: linear-gradient(180deg, var(--maroon-light), var(--maroon)); color:#fff; border: 2px solid var(--border); padding: 14px; border-radius: 5px; font-family:'Bebas Neue', sans-serif; font-size:18px; letter-spacing:0.06em; cursor:pointer; transition: transform.12s ease, box-shadow.12s ease; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow: var(--shadow-sm); }
+ .submit-btn:hover{ transform: translate(-2px,-2px); box-shadow: 6px 6px 0 rgba(16,15,20,0.9); }
+ .submit-btn:active{ transform: translate(1px,1px); box-shadow: 2px 2px 0 rgba(16,15,20,0.9); }
+ .submit-btn:disabled{ opacity:0.6; cursor:not-allowed; transform:none; }
+ .spinner{ width:16px; height:16px; border-radius:50%; border:2px solid rgba(255,255,255,0.4); border-top-color:#fff; animation: spin.7s linear infinite; }
+  @keyframes spin{ to{ transform: rotate(360deg); } }
+ .dash-head{ display:flex; align-items:flex-end; justify-content:space-between; gap: 16px; flex-wrap:wrap; margin-bottom:22px; }
+ .dash-head h2{ font-family:'Cinzel', serif; font-size:25px; font-weight:700; margin:0 0 4px; color: var(--navy-deep); }
+ .dash-head p{ margin:0; color:var(--muted); font-size:13.5px; }
+ .refresh-btn{ background: #fff; border:2px solid var(--border); color:var(--navy-deep); padding:9px 16px; border-radius:5px; font-family:'Bebas Neue', sans-serif; font-size:14.5px; letter-spacing:0.04em; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow: var(--shadow-sm); transition: transform.12s ease; }
+ .refresh-btn:hover{ transform: translate(-2px,-2px); box-shadow: 5px 5px 0 rgba(16,15,20,0.9); }
+ .refresh-btn svg{ width:14px; height:14px; }
+ .refresh-btn.spinning svg{ animation: spin 0.8s linear infinite; }
+ .stats{ display:grid; grid-template-columns: repeat(4, 1fr); gap:14px; margin-bottom: 26px; }
   @media (max-width: 720px){.stats{ grid-template-columns: repeat(2,1fr); } }
- .stat { padding: 20px; text-align: center; transition: 0.3s; }
- .stat:hover { background: var(--surface-hover); transform: translateY(-2px); }
- .stat .num { font-family:'Cinzel', serif; font-size:30px; font-weight:700; color: var(--accent); }
- .stat .lbl { font-size:11px; color:var(--muted); margin-top:6px; text-transform:uppercase; letter-spacing:0.08em; }
- 
- .toolbar { display:flex; gap:12px; margin-bottom:24px; flex-wrap:wrap; align-items: center; }
- .toolbar input, .toolbar select { flex:2; min-width:180px; }
- .backup-actions { display: flex; gap: 10px; flex: 1; min-width: 220px; justify-content: flex-end; }
- .backup-btn { 
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border); 
-    color: #fff; padding: 12px 18px; border-radius: 8px; 
-    font-family:'Bebas Neue', sans-serif; font-size: 14px; letter-spacing:0.06em; 
-    cursor: pointer; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: all 0.2s;
- }
- .backup-btn:hover { background: rgba(255,255,255,0.08); }
- 
- /* List Cards */
- .sub-card { 
-    padding:20px 24px; margin-bottom:16px; display:grid; 
-    grid-template-columns: 1fr auto; gap:16px; align-items:center; transition: all 0.2s ease;
- }
- .sub-card:hover { 
-    background: var(--surface-hover); 
-    transform: translateX(2px); 
-    border-color: rgba(255,255,255,0.15);
- }
- .sub-card .main-info { display:flex; flex-direction:column; gap:6px; }
- .sub-card .title { font-weight:700; font-size:16.5px; font-family:'Cinzel', serif; color: #fff; }
- .sub-card .meta { font-size:13px; color:var(--muted); display:flex; flex-wrap:wrap; gap:6px 12px; }
- .sub-card .meta .id { font-family:'IBM Plex Mono', monospace; color: var(--muted); opacity: 0.7; }
- .tag { display:inline-block; font-family:'Bebas Neue', sans-serif; font-size:12.5px; letter-spacing:0.06em; padding: 3px 10px; border-radius: 6px; background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); }
- 
- .actions { display:flex; gap:8px; }
- .actions button { 
-    background: rgba(0,0,0,0.2); border: 1px solid var(--border); 
-    color: #fff; padding: 10px 14px; border-radius: 6px; 
-    font-size: 13px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:6px; transition: all 0.2s; 
- }
- .actions button:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.3); }
- .actions .del-btn { color: #f87171; border-color: rgba(239,68,68,0.2); }
- .actions .del-btn:hover { background: var(--danger-bg); border-color: var(--danger); }
- 
- /* Skeletons & States */
- .empty-state { text-align:center; padding: 60px 20px; color: var(--muted); }
- .empty-state svg { width:44px; height:44px; margin-bottom:16px; color: var(--muted); opacity: 0.5; }
- .empty-state h3 { font-family:'Cinzel', serif; color:#fff; margin:0 0 8px; font-size:20px; }
- 
- .skeleton { 
-    height: 90px; border-radius: 12px; margin-bottom:16px; 
-    border: 1px solid var(--border); 
-    background: linear-gradient(90deg, rgba(255,255,255,0.01) 25%, rgba(255,255,255,0.04) 37%, rgba(255,255,255,0.01) 63%); 
-    background-size: 400% 100%; animation: shimmer 1.5s ease infinite; 
-  }
-  @keyframes shimmer { 0% { background-position: 100% 0;} 100% { background-position: 0 0; } }
- 
- /* Overlays & Modals */
- .overlay { position:fixed; inset:0; background: rgba(5, 6, 8, 0.8); backdrop-filter: blur(4px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition: opacity 0.3s ease; z-index: 100; }
- .overlay.show { opacity:1; pointer-events:auto; }
- .modal { 
-    background: #11131c; border-radius: 16px; max-width: 440px; width:100%; 
-    padding: 40px 32px; text-align:center; box-shadow: 0 20px 50px rgba(0,0,0,0.8); 
-    transform: translateY(15px) scale(0.97); transition: all 0.35s cubic-bezier(.2,.9,.3,1.2); 
-    border: 1px solid var(--border);
- }
- .overlay.show .modal { transform: translateY(0) scale(1); }
- 
- .auth-panel { padding: 45px; max-width: 460px; margin: 60px auto; position: relative; }
- .auth-panel::before { content:"ACCESS RESTRICTED"; position:absolute; top:-12px; left:28px; background: var(--shinobi-red); color:#fff; font-family:'Bebas Neue', sans-serif; font-size:12px; letter-spacing:0.12em; padding: 3px 14px; border-radius:6px; }
- 
- .check-wrap { width:64px; height:64px; margin:0 auto 20px; border-radius:50%; background: rgba(16,185,129,0.1); display:flex; align-items:center; justify-content:center; border: 1px solid var(--success); }
- .check-wrap svg { width:30px; height:30px; }
- .check-wrap path { stroke: var(--success); stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray: 40; stroke-dashoffset:40; animation: draw 0.5s ease 0.1s forwards; }
-  @keyframes draw { to { stroke-dashoffset:0; } }
- 
- .modal h3 { font-family:'Cinzel', serif; font-size:22px; font-weight:700; margin: 0 0 10px; color: #fff; }
- .modal p { color: var(--muted); font-size:14.5px; margin: 0 0 22px; line-height:1.6; }
- .modal .sub-id { font-family:'IBM Plex Mono', monospace; background: rgba(0,0,0,0.3); border: 1px solid var(--border); border-radius: 8px; padding:10px 14px; font-size:13.5px; color: var(--accent); margin-bottom:24px; word-break: break-all; }
- 
- .modal-actions { display:flex; gap:12px; }
- .modal-actions button { flex:1; padding:14px; border-radius:8px; font-family:'Bebas Neue', sans-serif; font-size:16px; letter-spacing:0.06em; cursor:pointer; border: none; transition: all 0.2s; }
- .modal-actions .primary { background: var(--accent); color:#11131c; font-weight: bold; }
- .modal-actions .ghost { background: rgba(255,255,255,0.05); color: #fff; border: 1px solid var(--border); }
- .modal-actions .ghost:hover { background: rgba(255,255,255,0.1); }
- 
- .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #161824; color:#fff; padding: 14px 26px; border-radius: 30px; font-size:14px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); opacity:0; pointer-events:none; transition: all 0.3s ease; z-index: 200; border: 1px solid var(--border); }
- .toast.show { opacity:1; transform: translateX(-50%) translateY(0); }
- .storage-banner { display:flex; align-items:center; gap:12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; padding:12px 18px; font-size:13.5px; color: var(--muted); margin-bottom:24px; }
- .storage-banner svg { width:18px; height:18px; flex-shrink:0; color: var(--muted); }
- 
- footer { text-align:center; padding: 30px 24px 50px; color: rgba(255,255,255,0.25); font-size:12.5px; position: relative; z-index:1; border-top: 1px solid var(--border); margin-top: 40px; letter-spacing: 0.04em; }
+ .stat{ padding:18px; }
+ .stat.num{ font-family:'Cinzel', serif; font-size:28px; font-weight:700; color: var(--maroon); }
+ .stat.lbl{ font-size:11.5px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.05em; }
+ .toolbar{ display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items: center; }
+ .toolbar input,.toolbar select{ flex:2; min-width:160px; }
+ .backup-actions { display: flex; gap: 8px; flex: 1; min-width: 200px; justify-content: flex-end; }
+ .backup-btn { background: #fff; border: 2px solid var(--border); color: var(--ink); padding: 11px 14px; border-radius: 5px; font-family:'Bebas Neue', sans-serif; font-size: 14px; letter-spacing:0.04em; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; box-shadow: var(--shadow-sm); transition: transform.12s ease; }
+ .backup-btn:hover { transform: translate(-2px,-2px); box-shadow: 5px 5px 0 rgba(16,15,20,0.9); }
+ .sub-card{ padding:18px 20px; margin-bottom:14px; display:grid; grid-template-columns: 1fr auto; gap:14px; align-items:center; transition: transform.15s ease, box-shadow.15s ease; }
+ .sub-card:hover{ transform: translate(-2px,-2px); box-shadow: 7px 7px 0 rgba(16,15,20,0.9); }
+ .sub-card.main-info{ display:flex; flex-direction:column; gap:4px; }
+ .sub-card.title{ font-weight:700; font-size:15.5px; font-family:'Cinzel', serif; color: var(--navy-deep); }
+ .sub-card.meta{ font-size:12.5px; color:var(--muted); display:flex; flex-wrap:wrap; gap:4px 10px; }
+ .sub-card.meta.id{ font-family:'IBM Plex Mono', monospace; }
+ .tag{ display:inline-block; font-family:'Bebas Neue', sans-serif; font-size:12px; letter-spacing:0.06em; padding: 3px 10px; border-radius: 3px; background: var(--navy-deep); color: var(--gold-light); border: 1.5px solid var(--border); }
+ .actions{ display:flex; gap:8px; }
+ .actions button{ border:2px solid var(--border); background:#fff; color:var(--navy-deep); padding: 8px 13px; border-radius:5px; font-size:12.5px; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:5px; white-space:nowrap; transition: transform.12s ease; }
+ .actions button:hover{ transform: translate(-1px,-1px); box-shadow: 3px 3px 0 rgba(16,15,20,0.9); }
+ .actions.del-btn{ color: var(--danger); }
+ .actions.del-btn:hover{ background: var(--danger-bg); }
+ .empty-state{ text-align:center; padding: 56px 20px; color: var(--muted); }
+ .empty-state svg{ width:44px; height:44px; margin-bottom:14px; color: var(--maroon); opacity:0.6; }
+ .empty-state h3{ font-family:'Cinzel', serif; color:var(--navy-deep); margin:0 0 6px; font-size:19px; }
+ .skeleton{ height:78px; border-radius:6px; margin-bottom:12px; border: 2px solid var(--border-soft); background: linear-gradient(90deg, #efe9d9 25%, #f8f4e9 37%, #efe9d9 63%); background-size: 400% 100%; animation: shimmer 1.3s ease infinite; }
+  @keyframes shimmer{ 0%{ background-position: 100% 0;} 100%{ background-position: 0 0; } }
+ .overlay{ position:fixed; inset:0; background: rgba(6,13,36,0.6); display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition: opacity.2s ease; z-index: 100; }
+ .overlay.show{ opacity:1; pointer-events:auto; }
+ .modal{ background: var(--surface); border-radius: 8px; max-width: 420px; width:100%; padding: 34px 30px 28px; text-align:center; box-shadow: var(--shadow-lg); transform: translateY(14px) scale(0.97); transition: transform.25s cubic-bezier(.2,.9,.3,1.3); border: 2px solid var(--border); }
+ .overlay.show.modal{ transform: translateY(0) scale(1); }
+ .auth-panel { padding: 40px; max-width: 440px; margin: 60px auto; position: relative; }
+ .auth-panel::before{ content:"CLEARANCE REQUIRED"; position:absolute; top:-13px; left:28px; background: var(--maroon); color:#fff; font-family:'Bebas Neue', sans-serif; font-size:12px; letter-spacing:0.14em; padding: 3px 12px; border: 2px solid var(--border); border-radius:3px; }
+ .check-wrap{ width:64px; height:64px; margin:0 auto 18px; border-radius:50%; background: var(--success-bg); display:flex; align-items:center; justify-content:center; border: 2px solid var(--success); }
+ .check-wrap svg{ width:30px; height:30px; }
+ .check-wrap path{ stroke: var(--success); stroke-width:3; fill:none; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray: 40; stroke-dashoffset:40; animation: draw.5s ease.1s forwards; }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
+ .modal h3{ font-family:'Cinzel', serif; font-size:21px; font-weight:700; margin: 0 0 8px; color: var(--navy-deep); }
+ .modal p{ color: var(--muted); font-size:14px; margin: 0 0 18px; line-height:1.5; }
+ .modal.sub-id{ font-family:'IBM Plex Mono', monospace; background:#faf7ef; border:2px solid var(--border); border-radius:4px; padding:8px 12px; font-size:12.5px; color: var(--navy-deep); margin-bottom:20px; word-break: break-all; }
+ .modal-actions{ display:flex; gap:10px; }
+ .modal-actions button{ flex:1; padding:11px; border-radius:5px; font-family:'Bebas Neue', sans-serif; font-size:15px; letter-spacing:0.05em; cursor:pointer; transition: transform.12s ease; border: 2px solid var(--border); }
+ .modal-actions button:hover{ transform: translate(-2px,-2px); box-shadow: 4px 4px 0 rgba(16,15,20,0.9); }
+ .modal-actions.primary{ background: var(--maroon); color:#fff; }
+ .modal-actions.ghost{ background:#fff; color: var(--ink); }
+ .toast{ position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy-deep); color:#fff; padding: 12px 22px; border-radius: 5px; font-size:13.5px; box-shadow: var(--shadow-lg); opacity:0; pointer-events:none; transition: all.25s ease; z-index: 200; border: 2px solid var(--gold); }
+ .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+ .storage-banner{ display:flex; align-items:center; gap:10px; background: #fff; border:2px solid var(--border); border-radius:5px; padding:10px 14px; font-size:12.5px; color: var(--navy-deep); margin-bottom:18px; box-shadow: var(--shadow-sm); }
+ .storage-banner svg{ width:16px; height:16px; flex-shrink:0; color: var(--maroon); }
+  footer{ text-align:center; padding: 28px 24px 40px; color: var(--muted); font-size:12px; position: relative; z-index:1; border-top: 2px solid var(--border-soft); margin-top: 20px; letter-spacing: 0.02em; }
 
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce){
+    *, *::before, *::after{ animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; }
   }
 </style>
 </head>
 <body>
 
-<!-- Floating Objects -->
-<div class="floating-container">
-  <div class="float-object obj-1"></div>
-  <div class="float-object obj-2"></div>
-  <div class="float-object obj-3"></div>
-</div>
-
 <header class="top">
+  <div class="contour-bg">
+    <svg viewBox="0 0 200 200" fill="none" stroke="#ffffff" stroke-width="1">
+      <path d="M-10 150 Q40 100 90 140 T190 120"/><path d="M-10 165 Q40 118 90 158 T190 138"/><path d="M-10 180 Q40 136 90 176 T190 156"/><path d="M-10 195 Q40 154 90 194 T190 174"/><path d="M-10 130 Q40 82 90 122 T190 102"/>
+    </svg>
+  </div>
   <div class="top-inner">
     <div class="brand">
-      <!-- Custom Split Crest: Jiraiya Face Profile (Left) & Madara Profile with Spiky Hair (Right) -->
-      <div class="crest">
-        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <!-- Center dividing line design hint -->
-          <line x1="50" y1="15" x2="50" y2="85" stroke="rgba(255,255,255,0.1)" stroke-width="1" stroke-dasharray="2 2"/>
-          
-          <!-- LEFT SIDE: Jiraiya Motif -->
-          <!-- Headband plate line -->
-          <path d="M15 38 H45" stroke="#8892b0" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="30" cy="38" r="2.5" fill="#b91c1c"/> <!-- Red Oil Kanji Symbol Accent -->
-          <!-- Signature Left Eye Line (Tear/Paint streak) -->
-          <path d="M28 52 L24 75" stroke="#b91c1c" stroke-width="3" stroke-linecap="round"/>
-          <!-- Eye hint -->
-          <path d="M24 48 Q32 47 36 51" stroke="#fff" stroke-width="2"/>
-          <circle cx="30" cy="50" r="1.5" fill="#fff"/>
-          <!-- Spiky white hair profile lines edge -->
-          <path d="M12 25 L18 32 L10 42 L16 48 L8 60 L20 62" stroke="#e2e8f0" stroke-width="2" stroke-linejoin="round"/>
-
-          <!-- RIGHT SIDE: Madara Motif -->
-          <!-- Wild layered spiky hair covering right side profile -->
-          <path d="M52 20 L58 35 L50 42 L64 40 L56 55 L72 50 L60 68 L78 62 L65 78 L55 82" stroke="#e2e8f0" stroke-width="2" stroke-linejoin="round"/>
-          <!-- One visible Sharingan/Rinnegan eye piercing through hair gaps -->
-          <path d="M70 46 Q76 43 82 48" stroke="#a78bfa" stroke-width="2"/>
-          <circle cx="76" cy="47" r="2" fill="#ef4444"/>
-          <!-- High collar armor edge lines -->
-          <path d="M52 70 L58 75 M54 76 L62 80" stroke="#1e3a8a" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="brand-text">
-          <div class="eyebrow">Dooars Academy of Technology and Management</div>
-          <h1>Project Submission Portal</h1>
-      </div>
+      <div class="crest"><svg viewBox="0 0 24 24" fill="none"><path d="M3 20 L8 10 L12 16 L16 6 L21 20 Z" stroke="#c9a227" stroke-width="1.6" stroke-linejoin="round" fill="#0e1c3f"/></svg></div>
+      <div class="brand-text"><div class="eyebrow">Dooars Academy of Technology and Management</div><h1>Project Submission Portal</h1></div>
     </div>
   </div>
-  <nav class="tabs">
-      <button class="tab-btn active" data-view="submit">Submit Project</button>
-      <button class="tab-btn" data-view="dashboard">Dashboard</button>
-  </nav>
+  <nav class="tabs"><button class="tab-btn active" data-view="submit">Submit Project</button><button class="tab-btn" data-view="dashboard">Dashboard</button></nav>
 </header>
 
 <main>
@@ -370,35 +192,12 @@
       <h2 class="form-title">Submit your project</h2>
       <p class="form-sub">Fill in your details and attach your project report as a PDF (max 3.5 MB). Once submitted, it's saved securely to Google Drive + Sheet.</p>
       <form id="submitForm" novalidate>
-        <div class="row2">
-            <div class="field"><label for="stuName">Full name</label><input type="text" id="stuName" required placeholder="Your Name"></div>
-            <div class="field"><label for="stuRoll">Roll</label><input type="text" id="stuRoll" required placeholder="Enter University Roll No"></div>
-        </div>
-        <div class="row2">
-            <div class="field">
-                <label for="stuDept">Department</label>
-                <select id="stuDept" required>
-                    <option value="" disabled selected>Select department</option>
-                    <option>Bachelor of Computer Applications (BCA)</option>
-                </select>
-            </div>
-            <div class="field">
-                <label for="stuSem">Semester</label>
-                <select id="stuSem" required>
-                    <option value="" disabled selected>Select semester</option>
-                    <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
-                </select>
-            </div>
-        </div>
+        <div class="row2"><div class="field"><label for="stuName">Full name</label><input type="text" id="stuName" required placeholder="Your Name"></div><div class="field"><label for="stuRoll">Roll</label><input type="text" id="stuRoll" required placeholder="Enter University Roll No"></div></div>
+        <div class="row2"><div class="field"><label for="stuDept">Department</label><select id="stuDept" required><option value="" disabled selected>Select department</option><option>Bachelor of Computer Applications (BCA)</option></select></div><div class="field"><label for="stuSem">Semester</label><select id="stuSem" required><option value="" disabled selected>Select semester</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div></div>
         <div class="field"><label for="projTitle">Project title</label><input type="text" id="projTitle" required placeholder="e.g. Smart Irrigation Using IoT Sensors"></div>
         <div class="field"><label for="guideName">Guide / mentor name</label><input type="text" id="guideName" required placeholder="e.g. Prof. S. Basak"></div>
-        <div class="field">
-            <label>Project report (PDF, up to 3.5 MB)</label>
-          <div class="drop" id="dropZone">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke-linecap="round"/></svg>
-              <p>Drag &amp; drop your PDF here, or <span class="browse">browse</span></p>
-              <input type="file" id="fileInput" accept="application/pdf" style="display:none">
-          </div>
+        <div class="field"><label>Project report (PDF, up to 3.5 MB)</label>
+          <div class="drop" id="dropZone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke-linecap="round"/></svg><p>Drag &amp; drop your PDF here, or <span class="browse">browse</span></p><input type="file" id="fileInput" accept="application/pdf" style="display:none"></div>
           <div id="fileChip" class="file-chip" style="display:none"><span class="name" id="fileChipName"></span><span id="fileChipSize"></span><button type="button" id="removeFile">Remove</button></div>
           <div class="error-text" id="fileError">File must be a PDF and no larger than 3.5 MB.</div>
         </div>
@@ -407,67 +206,20 @@
     </div>
   </section>
 
-  <section id="view-auth" class="view">
-      <div class="panel auth-panel">
-          <h2 class="form-title" style="text-align:center; margin-bottom: 25px;">Dashboard Access Verification</h2>
-          <form id="authForm">
-              <div class="field"><label for="authId">User Identification ID</label><input type="text" id="authId" required placeholder="Enter Admin ID"></div>
-              <div class="field"><label for="authPass">Security Passkey</label><input type="password" id="authPass" required placeholder="Enter Secret Password"></div>
-              <button type="submit" class="submit-btn" style="margin-top: 25px;">Authenticate Security Credentials</button>
-          </form>
-      </div>
-  </section>
+  <section id="view-auth" class="view"><div class="panel auth-panel"><h2 class="form-title" style="text-align:center; margin-bottom: 20px;">Dashboard Access Verification</h2><form id="authForm"><div class="field"><label for="authId">User Identification ID</label><input type="text" id="authId" required placeholder="Enter Admin ID"></div><div class="field"><label for="authPass">Security Passkey</label><input type="password" id="authPass" required placeholder="Enter Secret Password"></div><button type="submit" class="submit-btn" style="margin-top: 15px;">Authenticate Security Credentials</button></form></div></section>
 
   <section id="view-dashboard" class="view">
-    <div class="dash-head">
-        <div>
-            <h2>Submissions dashboard</h2>
-            <p>Streaming BCA submissions — synced from Google Drive + Sheets.</p>
-        </div>
-        <button class="refresh-btn" id="refreshBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" stroke-linecap="round"/><path d="M18 4v4h-4M6 20v-4h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            Refresh
-        </button>
-    </div>
-    <div class="storage-banner">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a8 4 0 0016 0M4 7a8 4 0 0116 0v10a8 4 0 01-16 0V7z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span id="storageBannerText">Showing data stored securely via Google Drive + Sheets.</span>
-    </div>
-    <div class="stats">
-        <div class="panel stat"><div class="num" id="statTotal">0</div><div class="lbl">Total submissions</div></div>
-        <div class="panel stat"><div class="num" id="statToday">0</div><div class="lbl">Submitted today</div></div>
-        <div class="panel stat"><div class="num" id="statDepts">0</div><div class="lbl">Departments represented</div></div>
-        <div class="panel stat"><div class="num" id="statSize">0 MB</div><div class="lbl">Total storage used</div></div>
-    </div>
-    <div class="toolbar">
-        <input type="text" id="searchInput" placeholder="Search by name, roll no. or title…">
-        <select id="deptFilter"><option value="">All departments</option></select>
-        <div class="backup-actions">
-            <button class="backup-btn" id="exportBtn">Export Data</button>
-            <button class="backup-btn" id="importBtn">Import Data</button>
-            <input type="file" id="importFile" accept=".json" style="display:none">
-        </div>
-    </div>
-    <div id="listContainer">
-        <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-    </div>
+    <div class="dash-head"><div><h2>Submissions dashboard</h2><p>Streaming BCA submissions — synced from Google Drive + Sheets.</p></div><button class="refresh-btn" id="refreshBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" stroke-linecap="round"/><path d="M18 4v4h-4M6 20v-4h4" stroke-linecap="round" stroke-linejoin="round"/></svg>Refresh</button></div>
+    <div class="storage-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7a8 4 0 0016 0M4 7a8 4 0 0116 0v10a8 4 0 01-16 0V7z" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="storageBannerText">Showing data stored securely via Google Drive + Sheets.</span></div>
+    <div class="stats"><div class="panel stat"><div class="num" id="statTotal">0</div><div class="lbl">Total submissions</div></div><div class="panel stat"><div class="num" id="statToday">0</div><div class="lbl">Submitted today</div></div><div class="panel stat"><div class="num" id="statDepts">0</div><div class="lbl">Departments represented</div></div><div class="panel stat"><div class="num" id="statSize">0 MB</div><div class="lbl">Total storage used</div></div></div>
+    <div class="toolbar"><input type="text" id="searchInput" placeholder="Search by name, roll no. or title…"><select id="deptFilter"><option value="">All departments</option></select><div class="backup-actions"><button class="backup-btn" id="exportBtn">Export Data</button><button class="backup-btn" id="importBtn">Import Data</button><input type="file" id="importFile" accept=".json" style="display:none"></div></div>
+    <div id="listContainer"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
   </section>
 </main>
 
 <footer>Made with internet, Not with prompt· @subhadip_sengupta</footer>
 
-<div class="overlay" id="successOverlay">
-    <div class="modal">
-        <div class="check-wrap"><svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg></div>
-        <h3>Submission received</h3>
-        <p id="modalMsg">Your project has been submitted successfully.</p>
-        <div class="sub-id" id="modalSubId"></div>
-        <div class="modal-actions">
-            <button class="ghost" id="modalAnother">Submit another</button>
-            <button class="primary" id="modalDashboard">Go to dashboard</button>
-        </div>
-    </div>
-</div>
+<div class="overlay" id="successOverlay"><div class="modal"><div class="check-wrap"><svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg></div><h3>Submission received</h3><p id="modalMsg">Your project has been submitted successfully.</p><div class="sub-id" id="modalSubId"></div><div class="modal-actions"><button class="ghost" id="modalAnother">Submit another</button><button class="primary" id="modalDashboard">Go to dashboard</button></div></div></div>
 <div class="toast" id="toast"></div>
 
 <script>
